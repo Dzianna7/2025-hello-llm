@@ -127,6 +127,10 @@ Datasets
       3. Rename column ``text`` to ``source``.
       4. Reset indexes.
 
+.. note:: When used with ``XSY/albert-base-v2-imdb-calssification``
+          model, use the parameter setting ``max_length=512``.
+
+
 6. `dair-ai/emotion <https://huggingface.co/datasets/dair-ai/emotion>`__
 
    1. **Lang**: EN
@@ -262,7 +266,16 @@ Supervised Fine-Tuning (SFT) Parameters
    - Set the parameter ``problem_type="single_label_classification"``
      for the `cointegrated/rubert-tiny2-cedr-emotion-detection <https://hugging
      face.co/cointegrated/rubert-tiny2-cedr-emotion-detection>`__ when
-     initializing model instance.
+     initializing model instance. Set the parameters
+     ``target_modules=["query", "key", "value", "dense"], rank=16, alpha=24``
+     as its SFT parameters.
+
+   - Set the parameters ``problem_type="single_label_classification"``,
+     ``num_labels=2``, ``ignore_mismatched_sizes=True``
+     for the `OxAISH-AL-LLM/wiki_toxic dataset <https://hugging
+     face.co/datasets/OxAISH-AL-LLM/wiki_toxic/viewer/default/validation>`__ when
+     initializing `cointegrated/rubert-tiny-toxicity
+     <https://huggingface.co/cointegrated/rubert-tiny-toxicity>`__ model instance.
 
 Metrics
 -------

@@ -16,6 +16,10 @@
     "target": "source/docs/llm_2025/labs/lab_7/core_utils.api.rst"
   },
   {
+    "source": "core_utils/project/core_utils_project.api.rst",
+    "target": "source/docs/llm_2025/labs/lab_7/project.api.rst"
+  },
+  {
     "source": "lab_7_llm/lab_7_llm.api.rst",
     "target": "source/docs/llm_2025/labs/lab_7/lab_7.api.rst"
   },

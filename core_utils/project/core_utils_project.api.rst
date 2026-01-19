@@ -1,10 +1,10 @@
-config package
-===================
+core\_utils\_project package
+============================
 
 Submodules
 ----------
 
-.. automodule:: config.lab_settings
+.. automodule:: core_utils.project.lab_settings
    :members:
    :undoc-members:
    :show-inheritance:

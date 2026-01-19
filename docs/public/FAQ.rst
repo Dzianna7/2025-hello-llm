@@ -44,7 +44,6 @@ Let’s say the structure of your project looks like this:
 .. code:: text
 
    +-- 2023-2-level-labs
-       +-- config
        +-- docs
        +-- lab_1_keywords_tfidf
            +-- assets
@@ -68,7 +67,7 @@ you need to put it the following way:
 
    from lab_1_keywords_tfidf.main import <functions you want to import>
 
-3. Argument 1 to <function name> Has incompatible type "Optional[<certain type>]"; expected "[<certain type>]"
+1. Argument 1 to <function name> Has incompatible type "Optional[<certain type>]"; expected "[<certain type>]"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In some of the laboratory works there is a requirement to check input

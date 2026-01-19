@@ -121,8 +121,8 @@ Datasets
 Supervised Fine-Tuning (SFT) Parameters
 ---------------------------------------
 
-.. note:: Set the parameter
-          ``target_modules=["query", "key", "value", "dense"]`` for the
+.. note:: Set the parameter ``target_modules`` as
+          ``["query", "key", "value", "dense"]`` for the
           `mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization
           <https://huggingface.co/mrm8488/bert-small2bert-small-finetuned-
           cnn_daily_mail-summarization>`__,
@@ -130,16 +130,26 @@ Supervised Fine-Tuning (SFT) Parameters
           <https://huggingface.co/mrm8488/bert-mini2bert-mini-finetuned-
           cnn_daily_mail-summarization>`__ and
           `dmitry-vorobiev/rubert_ria_headlines <https://huggingface.co/dmitry-
-          vorobiev/rubert_ria_headlines>`__ models.
+          vorobiev/rubert_ria_headlines>`__ models, and as
+          ``["q", "k", "wi", "wo"]`` for the
+          `UrukHan/t5-russian-summarization
+          <https://huggingface.co/UrukHan/t5-russian-summarization>`__ model.
 
-.. note:: Set the parameter ``learning_rate=1e-4`` for the
-          `mrm8488/bert-mini2bert-mini-finetuned-cnn_daily_mail-summarization
-          <https://huggingface.co/mrm8488/bert-mini2bert-mini-finetuned-
-          cnn_daily_mail-summarization>`__ model and
-          ``learning_rate=1e-1`` for the
-          `dmitry-vorobiev/rubert_ria_headlines
-          <https://huggingface.co/dmitry-vorobiev/rubert_ria_headlines>`__
-          as SFT parameter.
+
+.. note:: Set the parameters ``fine_tuning_steps=150, rank=24, alpha=36`` for the
+          `mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization
+          <https://huggingface.co/mrm8488/bert-small2bert-
+          small-finetuned-cnn_daily_mail-summarization>`__
+          as SFT parameters.
+
+
+.. note:: Set the parameters
+          ``target_modules= ["q", "k", "v"], learning_rate=1e-4,
+          fine_tuning_steps=60, rank=24, alpha=36``
+          for the `stevhliu/my_awesome_billsum_model
+          <https://huggingface.co/stevhliu/my_awesome_billsum_model>`__
+          as SFT parameters.
+
 
 Metrics
 -------

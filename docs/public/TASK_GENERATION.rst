@@ -123,7 +123,7 @@ Metrics CLOSED QA
 
 .. note:: To calculate the squad metric, you need to convert the data
           into a special structure. This structure you can find in
-          `this repository <https://github.com/huggingface/datasets>`__
+          `this repository <https://github.com/huggingface/evaluate>`__
           in the ``metrics`` directory.
 
 Datasets OPEN QA

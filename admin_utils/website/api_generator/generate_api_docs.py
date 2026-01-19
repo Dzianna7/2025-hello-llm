@@ -4,9 +4,10 @@ Generator for API docs for Sphinx.
 
 from pathlib import Path
 
-from config.cli_unifier import _run_console_tool, handles_console_error
-from config.constants import PROJECT_CONFIG_PATH
-from config.project_config import ProjectConfig
+from quality_control.cli_unifier import _run_console_tool, handles_console_error
+from quality_control.project_config import ProjectConfig
+
+from admin_utils.constants import PROJECT_CONFIG_PATH
 
 
 @handles_console_error()

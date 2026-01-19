@@ -149,7 +149,7 @@
     },
     "cointegrated/rubert-tiny2-cedr-emotion-detection": {
         "seara/ru_go_emotions": {
-            "f1": 0.30000
+            "f1": 0.11000
         }
     },
     "cross-encoder/qnli-distilroberta-base": {

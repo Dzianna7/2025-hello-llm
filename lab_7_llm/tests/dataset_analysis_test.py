@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from admin_utils.references.reference_scores import ReferenceAnalysisScores
-from config.lab_settings import LabSettings
+from core_utils.project.lab_settings import LabSettings
 from lab_7_llm.main import RawDataImporter, RawDataPreprocessor
 from lab_7_llm.start import main
 

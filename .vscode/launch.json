@@ -48,6 +48,17 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             }
+        },
+        {
+            "name": "[CHECK] UML Diagrams",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/admin_utils/uml/check_diagrams.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
         }
     ]
 }

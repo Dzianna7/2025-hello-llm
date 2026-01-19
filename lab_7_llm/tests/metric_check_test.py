@@ -9,9 +9,9 @@ from typing import Callable, Type
 import pytest
 
 from admin_utils.references.reference_scores import ReferenceScores
-from config.lab_settings import LabSettings
 from core_utils.llm.metrics import Metrics
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
+from core_utils.project.lab_settings import LabSettings
 from lab_7_llm.main import TaskEvaluator
 from lab_7_llm.start import main
 

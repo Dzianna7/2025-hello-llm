@@ -10,9 +10,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast, Optional
 
-from config.cli_unifier import _run_console_tool, handles_console_error
-from config.console_logging import get_child_logger
-from config.constants import TRACKED_JSON_PATH
+from quality_control.cli_unifier import _run_console_tool, handles_console_error
+from quality_control.console_logging import get_child_logger
+
+from admin_utils.constants import TRACKED_JSON_PATH
 
 logger = get_child_logger(__file__)
 

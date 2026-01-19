@@ -118,6 +118,7 @@ def get_nmt_models() -> tuple[str, ...]:
         "Helsinki-NLP/opus-mt-ru-en",
         "Helsinki-NLP/opus-mt-ru-es",
         "google-t5/t5-small",
+        "t5-small",
     )
 
 

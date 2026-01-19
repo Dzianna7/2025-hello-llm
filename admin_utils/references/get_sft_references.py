@@ -20,8 +20,8 @@ from admin_utils.references.helpers import (
     get_summurization_models,
     prepare_result_section,
 )
-from config.lab_settings import InferenceParams, SFTParams
 from core_utils.llm.metrics import Metrics
+from core_utils.project.lab_settings import InferenceParams, SFTParams
 
 from reference_lab_classification_sft.start import get_result_for_classification  # isort:skip
 from reference_lab_nli_sft.start import get_result_for_nli  # isort:skip
@@ -124,8 +124,6 @@ def main() -> None:
     dist_dir = project_root / "dist"
     dist_dir.mkdir(exist_ok=True)
 
-    dest = project_root / "admin_utils" / "references" / "gold" / "reference_sft_scores_new.json"
-
     references = get_references(path=references_path)
 
     combinations = collect_combinations(references)
@@ -154,7 +152,6 @@ def main() -> None:
         "Helsinki-NLP/opus-mt-en-fr": 60,
         "Helsinki-NLP/opus-mt-ru-es": 100,
         "stevhliu/my_awesome_billsum_model": 60,
-        "cointegrated/rubert-base-cased-nli-threeway": 50,
         "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": 150,
     }
     specific_lr = {
@@ -178,19 +175,18 @@ def main() -> None:
     result = {}
     for model_name, dataset_name, metrics in tqdm(sorted(combinations)):
         if (
-            model_name in result
-            and dataset_name in result[model_name]
-            and all(metric in result[model_name][dataset_name] for metric in metrics)
+            model_name == "cointegrated/rubert-tiny-toxicity"
+            and dataset_name == "OxAISH-AL-LLM/wiki_toxic"
         ):
             continue
-        print(model_name, dataset_name, metrics)
+        print(model_name, dataset_name, metrics, flush=True)
         prepare_result_section(result, model_name, dataset_name, metrics)
 
         sft_params.finetuned_model_path = dist_dir / model_name
         sft_params.learning_rate = specific_lr.get(model_name, 1e-3)
         sft_params.max_fine_tuning_steps = specific_fine_tuning_steps.get(model_name, 50)
-        sft_params.rank = specific_rank.get(model_name, 16)
-        sft_params.alpha = specific_alpha.get(model_name, 16)
+        sft_params.rank = specific_rank.get(model_name, 8)
+        sft_params.alpha = specific_alpha.get(model_name, 8)
         sft_params.target_modules = get_target_modules(model_name)
 
         main_params = MainParams(model_name, dataset_name, [Metrics(metric) for metric in metrics])
@@ -199,7 +195,7 @@ def main() -> None:
         for metric in metrics:
             score = Decimal(sft_result[metric]).quantize(Decimal("1.00000"), ROUND_FLOOR)
             result[model_name][dataset_name][metric] = score
-        save_reference(dest, result)
+    save_reference(references_path, result)
 
 
 if __name__ == "__main__":

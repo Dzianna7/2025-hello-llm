@@ -79,15 +79,23 @@ Supervised Fine-Tuning (SFT) Parameters
 ---------------------------------------
 
 .. note:: Set the parameter
-          ``target_modules=["k_proj", "v_proj", "q_proj", "out_proj"]`` for the
+          ``target_modules=["q_proj", "k_proj"]`` for the
           `Helsinki-NLP/opus-mt-en-fr <https://huggingface.co/Helsinki-NLP/opus-mt-en-fr>`__,
           `Helsinki-NLP/opus-mt-ru-en <https://huggingface.co/Helsinki-NLP/opus-mt-ru-en>`__,
           `Helsinki-NLP/opus-mt-ru-es <https://huggingface.co/Helsinki-NLP/opus-mt-ru-es>`__
           models.
 
-.. note:: Set the parameter ``learning_rate=1e-4`` for the
+.. note:: Set the parameters ``target_modules=["q", "k", "v"], rank=24, alpha=36`` for the
+          `t5-small <https://huggingface.co/t5-small>`__ model as SFT parameter.
+
+.. note:: Set the parameter ``fine_tuning_steps=100`` for the
           `Helsinki-NLP/opus-mt-ru-es <https://huggingface.co/Helsinki-NLP/opus-mt-ru-es>`__
           model as SFT parameter.
+
+.. note:: Set the parameters ``fine_tuning_steps=60, rank=16, alpha=24`` for the
+          `Helsinki-NLP/opus-mt-en-fr <https://huggingface.co/Helsinki-NLP/opus-mt-en-fr>`__
+          model as SFT parameters.
+
 
 Metrics
 -------

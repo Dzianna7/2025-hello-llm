@@ -45,7 +45,6 @@ exclude = [
     'venv*',
     'build/'
 ]
-application_import_names = ['config']
 select = ['I']
 count = true
 
@@ -70,7 +69,6 @@ group_by_package = true
 force_alphabetical_sort_within_sections = true
 src_paths = [
     "admin_utils",
-    "config",
     "core_utils",
     "lab_7_llm",
 ]
@@ -117,6 +115,21 @@ ignore_missing_imports = true
 module = ['seminars.*', ]
 disable_error_code = [
     'empty-body'
+]
+
+[[tool.mypy.overrides]]
+module = [
+    'admin_utils.external_pr_files.create_external_pr',
+    'admin_utils.github.update_forks',
+    'admin_utils.github.update_fork',
+    'admin_utils.uml.uml_diagrams_builder',
+    'admin_utils.uml.check_diagrams',
+    'admin_utils.website.api_generator.generate_api_docs',
+]
+disable_error_code = [
+    'import-untyped',
+    'no-any-unimported',
+    'no-any-return',
 ]
 
 [[tool.mypy.overrides]]

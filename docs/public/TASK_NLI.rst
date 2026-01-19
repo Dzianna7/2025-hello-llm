@@ -112,9 +112,9 @@ Datasets
 Supervised Fine-Tuning (SFT) Parameters
 ---------------------------------------
 
-.. note:: Set the parameter ``learning_rate=1e-2`` for the
-          `cointegrated/rubert-tiny-bilingual-nli <huggingface.co/cointegrated/rubert-tiny-bilingual-nli>`__
-          model as SFT parameter.
+.. note:: Set the parameter ``target_modules=["key"]`` for the
+          `cointegrated/rubert-base-cased-nli-threeway
+          <https://huggingface.co/cointegrated/rubert-base-cased-nli-threeway>`__ model.
 
 Metrics
 -------

@@ -64,7 +64,7 @@ def main() -> None:
     result = {}
 
     for model_name in tqdm(sorted(references)):
-        print(model_name)
+        print(model_name, flush=True)
         pipeline = LLMPipeline(
             model_name, TaskDataset(DataFrame([])), max_length, batch_size, device
         )

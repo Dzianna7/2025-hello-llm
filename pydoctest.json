@@ -3,8 +3,6 @@
     "exclude_paths": [
         "admin_utils/**/*.py",
         "admin_utils\\**\\*.py",
-        "config/**/*.py",
-        "config\\**\\*.py",
         "seminars/**/*.py",
         "seminars\\**\\*.py",
         "reference*/**/*_stub.py",

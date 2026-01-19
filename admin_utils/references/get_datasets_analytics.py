@@ -121,7 +121,7 @@ def main() -> None:
     result = {}
     for dataset_name in tqdm(sorted(set(datasets_raw))):
         importer: AbstractRawDataImporter
-        print(f"Processing {dataset_name} ...")
+        print(f"Processing {dataset_name} ...", flush=True)
 
         if dataset_name == "seara/ru_go_emotions":
             importer = RuGoRawDataImporter(dataset_name)

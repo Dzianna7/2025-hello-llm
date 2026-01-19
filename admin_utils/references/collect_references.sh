@@ -1,5 +1,6 @@
 # Run: nohup bash admin_utils/references/collect_references.sh > references.log 2>&1 &
-# Monitor: ps -ef | grep collect_references
+# Monitor: ps -ef | grep [r]eferences
+# Kill: kill -9 $(ps aux | grep '[r]eferences' | awk '{print $2}')
 
 set -ex
 
@@ -9,9 +10,8 @@ echo $current_date_time;
 source venv/bin/activate
 
 export PYTHONPATH=$(pwd)
-export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 
-# GPU measurements are for 1x A5000 (24 ГБ)
+# GPU measurements are for 1x A5000 (24 GB)
 # ~2 GPU min
 python admin_utils/references/get_datasets_analytics.py
 

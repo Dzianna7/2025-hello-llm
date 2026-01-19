@@ -27,10 +27,10 @@ class AbstractTaskEvaluator(ABC):
         self._metrics = metrics
 
     @abstractmethod
-    def run(self) -> dict[str, float] | None:
+    def run(self) -> dict[str, float]:
         """
         Evaluate the predictions against the references using the specified metric.
 
         Returns:
-            dict[str, float] | None: A dictionary containing information about the calculated metric
+            dict[str, float]: A dictionary containing information about the calculated metric
         """

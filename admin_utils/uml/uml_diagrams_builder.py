@@ -27,8 +27,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # pylint: disable=wrong-import-position
-from config.cli_unifier import _run_console_tool, handles_console_error
-from config.constants import PROJECT_CONFIG_PATH
+from quality_control.cli_unifier import _run_console_tool, handles_console_error
+
+from admin_utils.constants import PROJECT_CONFIG_PATH
 
 # pylint: enable=wrong-import-position
 
@@ -349,6 +350,10 @@ def main() -> None:
 
     for lab_info in labs:
         lab_name = lab_info["name"]
+
+        if not lab_name.startswith("lab_"):
+            continue
+
         lab_path = root_dir / lab_name
         if not lab_path.exists():
             print(f"Lab folder not found: {lab_path}")

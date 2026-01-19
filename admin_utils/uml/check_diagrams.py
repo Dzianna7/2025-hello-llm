@@ -20,9 +20,10 @@ import sys
 import tempfile
 from pathlib import Path
 
+from quality_control.project_config import Lab, ProjectConfig
+
+from admin_utils.constants import PROJECT_CONFIG_PATH
 from admin_utils.uml.uml_diagrams_builder import generate_uml_diagrams
-from config.constants import PROJECT_CONFIG_PATH
-from config.project_config import Lab, ProjectConfig
 
 
 def compute_png_hash(png_path: Path) -> str:
@@ -30,10 +31,10 @@ def compute_png_hash(png_path: Path) -> str:
     Compute a deterministic SHA256 hash from PNG.
 
     Args:
-        png_path (Path): Raw DOT file content as a string.
+        png_path (Path): Path to the PNG file.
 
     Returns:
-        str: SHA256 hex digest from PNG.
+        str: SHA256 hex digest of the PNG file contents.
     """
     return hashlib.sha256(png_path.read_bytes()).hexdigest()
 
@@ -111,12 +112,14 @@ def main() -> None:
         1 — if any diagram is missing, invalid, or outdated.
     """
     project_config = ProjectConfig(PROJECT_CONFIG_PATH)
-
     root_dir = PROJECT_CONFIG_PATH.parent
 
-    # pylint: disable=protected-access
-    all_ok = not any(not check_lab_diagram(lab, root_dir) for lab in project_config._dto.labs)
-    # pylint: enable=protected-access
+    target_labs = [lab for lab in project_config.get_labs() if lab.name.startswith("lab_")]
+
+    all_ok = True
+    for lab in target_labs:
+        if not check_lab_diagram(lab, root_dir):
+            all_ok = False
 
     if not all_ok:
         print("\nTip: Run the UML generator locally and commit the updated assets/description.png")

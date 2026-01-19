@@ -1,5 +1,8 @@
 set -ex
 
+sudo apt-get update
+sudo apt-get install -y graphviz
+
 which python
 
 python -m pip install --upgrade pip

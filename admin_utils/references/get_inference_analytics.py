@@ -20,7 +20,6 @@ from admin_utils.references.helpers import (
     get_open_qa_models,
     get_summurization_models,
 )
-from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 
 from lab_7_llm.main import LLMPipeline, TaskDataset  # isort:skip
 from reference_lab_classification.main import ClassificationLLMPipeline  # isort:skip
@@ -60,63 +59,22 @@ def get_inference_from_task(
     """
     dataset = TaskDataset(DataFrame([]))
 
-    pipeline: AbstractLLMPipeline
-    if task == "nmt":
-        pipeline = LLMPipeline(
-            model_name,
-            dataset,
-            inference_params.max_length,
-            inference_params.batch_size,
-            inference_params.device,
-        )
-    elif task == "generation":
-        pipeline = GenerationLLMPipeline(
-            model_name,
-            dataset,
-            inference_params.max_length,
-            inference_params.batch_size,
-            inference_params.device,
-        )
-    elif task == "classification":
-        pipeline = ClassificationLLMPipeline(
-            model_name,
-            dataset,
-            inference_params.max_length,
-            inference_params.batch_size,
-            inference_params.device,
-        )
-    elif task == "nli":
-        pipeline = NLILLMPipeline(
-            model_name,
-            dataset,
-            inference_params.max_length,
-            inference_params.batch_size,
-            inference_params.device,
-        )
-    elif task == "summarization":
-        pipeline = LLMPipeline(
-            model_name,
-            dataset,
-            inference_params.max_length,
-            inference_params.batch_size,
-            inference_params.device,
-        )
-    elif task == "open_qa":
-        pipeline = OpenQALLMPipeline(
-            model_name,
-            dataset,
-            inference_params.max_length,
-            inference_params.batch_size,
-            inference_params.device,
-        )
-    elif task == "ner":
-        pipeline = NERLLMPipeline(
-            model_name,
-            dataset,
-            inference_params.max_length,
-            inference_params.batch_size,
-            inference_params.device,
-        )
+    pipeline_per_task = {
+        "nmt": LLMPipeline,
+        "generation": GenerationLLMPipeline,
+        "classification": ClassificationLLMPipeline,
+        "nli": NLILLMPipeline,
+        "summarization": LLMPipeline,
+        "open_qa": OpenQALLMPipeline,
+        "ner": NERLLMPipeline,
+    }
+    pipeline = pipeline_per_task[task](
+        model_name,
+        dataset,
+        inference_params.max_length,
+        inference_params.batch_size,
+        inference_params.device,
+    )
 
     result = {}
     for sample in sorted(samples):
@@ -185,7 +143,6 @@ def main() -> None:
     """
     references_dir = Path(__file__).parent / "gold"
     references_path = references_dir / "reference_inference_analytics.json"
-    destination_path = references_dir / "reference_inference_analytics_new.json"
 
     max_length = 120
     batch_size = 1
@@ -204,11 +161,11 @@ def main() -> None:
     result = {}
 
     for model in tqdm(sorted(references)):
-        print(model)
+        print(model, flush=True)
         predictions = get_task(model, inference_params, references[model])
         result[model] = predictions
 
-    save_reference(destination_path, result)
+    save_reference(references_path, result)
 
 
 if __name__ == "__main__":

@@ -23,8 +23,8 @@ from admin_utils.references.helpers import (
     get_summurization_models,
     prepare_result_section,
 )
-from config.lab_settings import InferenceParams
 from core_utils.llm.metrics import Metrics
+from core_utils.project.lab_settings import InferenceParams
 
 from reference_lab_classification.start import get_result_for_classification  # isort:skip
 from reference_lab_generation.start import get_result_for_generation  # isort:skip
@@ -62,17 +62,11 @@ def get_task(model: str, main_params: MainParams, inference_params: InferencePar
         model = model.replace("test_", "")
 
     nmt_model = get_nmt_models()
-
     generation_model = get_generation_models()
-
     classification_models = get_classification_models()
-
     nli_model = get_nli_models()
-
     summarization_model = get_summurization_models()
-
     open_generative_qa_model = get_open_qa_models()
-
     ner_model = get_ner_models()
 
     if model in nmt_model:
@@ -100,7 +94,6 @@ def main() -> None:
     project_root = Path(__file__).parent.parent.parent
     references_dir = project_root / "admin_utils" / "references" / "gold"
     references_path = references_dir / "reference_scores.json"
-    destination_path = references_dir / "reference_scores_new.json"
 
     dist_dir = project_root / "dist"
     dist_dir.mkdir(exist_ok=True)
@@ -115,20 +108,12 @@ def main() -> None:
     )
 
     references = get_references(path=references_path)
-
     combos = collect_combinations(references)
+
     result = {}
-    if destination_path.exists():
-        result = get_references(path=destination_path)
     elements = list(enumerate(sorted(combos)))
     for _, (model_name, dataset_name, metrics) in tqdm(elements, total=len(elements)):
-        print(model_name, dataset_name, metrics)
-        if (
-            model_name in result
-            and dataset_name in result[model_name]
-            and all(metric in result[model_name][dataset_name] for metric in metrics)
-        ):
-            continue
+        print(model_name, dataset_name, metrics, flush=True)
 
         prepare_result_section(result, model_name, dataset_name, metrics)
 

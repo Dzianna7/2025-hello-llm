@@ -10,6 +10,7 @@ Laboratory work №7. Large Language Models no. 1
 
     lab_7_llm.api.rst
     ../core_utils/llm/core_utils_llm.api.rst
+    ../core_utils/project/core_utils_project.api.rst
 
 **Python competencies required to complete this tutorial:**
     * working with Transformers models;
@@ -125,7 +126,7 @@ and it is placed on the same level as ``main.py``.
 +----------------------------+------------------------------------------------+--------------+
 
 To initialize settings, import Path from ``pathlib`` and LabSettings
-``from config.lab_settings``. See the intended settings instantiation:
+``from core_utils.project.lab_settings``. See the intended settings instantiation:
 
 .. code:: py
 
@@ -515,7 +516,6 @@ use:
     * ``max_length`` = 120;
     * ``device`` = 'cpu'.
 
-.. note:: For generation closed QA task use ``max_length`` = 512.
 
 Stage 4.4. Infer dataset
 """"""""""""""""""""""""
