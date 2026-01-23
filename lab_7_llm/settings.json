@@ -1,8 +1,8 @@
 {
   "parameters": {
-    "model": "",
-    "dataset": "",
+    "model": "aiknowyou/it-emotion-analyzer",
+    "dataset": "dair-ai/emotion",
     "metrics": []
   },
-  "target_score": 0
+  "target_score": 4
 }
