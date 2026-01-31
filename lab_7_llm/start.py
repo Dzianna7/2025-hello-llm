@@ -22,17 +22,17 @@ def main() -> None:
 
     dataset_name = settings['parameters']['dataset']
 
-    data_importer = RawDataImporter(dataset_name)
-    data_importer.obtain()
+    importer = RawDataImporter(dataset_name)
+    importer.obtain()
 
-    data_preprocessor = RawDataPreprocessor(data_importer.raw_data)
-    result = data_preprocessor.analyze()
+    preprocessor = RawDataPreprocessor(importer.raw_data)
+    result = preprocessor.analyze()
 
     for key, value in result.items():
         print(f'{key} : {value}')
 
-    data_preprocessor.transform()
-    dataset = TaskDataset(data_preprocessor.data.head(100))
+    preprocessor.transform()
+    dataset = TaskDataset(preprocessor.data.head(100))
 
     model = settings['parameters']['model']
 
