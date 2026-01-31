@@ -72,19 +72,17 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
 
         # 5. Minimum and maximum length
         if self._raw_data.empty:
-            min_len = 0
-            max_len = 0
+            min_len = max_len = 0
         else:
-            min_len = float('inf')
-            max_len = 0
+            text_cols = [col for col in self._raw_data.columns
+                         if self._raw_data[col].dtype == 'object' or pd.api.types.is_string_dtype(self._raw_data[col])]
 
-            for col in self._raw_data.columns:
-                lengths = self._raw_data[col].astype(str).str.len()
-                if not lengths.empty:
-                    min_len = min(min_len, lengths.min())
-                    max_len = max(max_len, lengths.max())
+            df_to_use = self._raw_data[text_cols] if text_cols else self._raw_data
+            df_str = df_to_use.fillna('').astype(str)
 
-            min_len = int(min_len) if min_len != float('inf') else 0
+            lengths = df_str.apply(lambda row: len(' '.join(row.values).strip()), axis=1)
+            min_len = int(lengths.min())
+            max_len = int(lengths.max())
 
         return {
             "dataset_number_of_samples": num_samples,
@@ -94,7 +92,6 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             "dataset_sample_min_len": min_len,
             "dataset_sample_max_len": max_len
         }
-
     @report_time
     def transform(self) -> None:
         """
