@@ -2,6 +2,7 @@
 Starter for demonstration of laboratory work.
 """
 import json
+from pathlib import Path
 from core_utils.llm.time_decorator import report_time
 from lab_7_llm.main import RawDataImporter, RawDataPreprocessor, TaskDataset, LLMPipeline
 # pylint: disable=too-many-locals, undefined-variable, unused-import
@@ -12,38 +13,30 @@ def main() -> None:
     """
     Run the translation pipeline.
     """
-    importer = RawDataImporter(hf_name="dair-ai/emotion")
+    settings_path = Path(__file__).parent / 'settings.json'
+
+    with open(settings_path, 'r', encoding='utf-8') as file:
+        settings = json.load(file)
+
+    importer = RawDataImporter(settings["parameters"]["model"])
     importer.obtain()
+
     preprocessor = RawDataPreprocessor(raw_data=importer.raw_data)
     preprocessor.transform()
 
+    analyzed_data = preprocessor.analyze()
+
+    for k, v in analyzed_data.items():
+        print(f'{k} : {v}')
+
     dataset = TaskDataset(preprocessor.data.head(100))
-    df = dataset.data
-    print(df.head(5))
 
-    with open('settings.json', 'r') as f:
-        settings = json.load(f)
-    
-    batch_size = 1
-    max_length = 120
-    device = 'cpu'
-
-    pipeline = LLMPipeline(settings["parameters"]["model"], settings["parameters"]["dataset"], max_length, batch_size, device)
+    pipeline = LLMPipeline(settings["parameters"]["model"], settings["parameters"]["dataset"], 120, 1, "cpu")
     
     analysis_result = pipeline.analyze_model()
     print(analysis_result)
 
-    test_samples = [
-        ("im feeling quite sad and sorry for myself but ill snap out of it soon",),
-        ("i'm feeling this weird mix of anxious and excited about tomorrow's meeting, like my stomach is doing flips",),
-        ("i stopped feeling cold and began feeling hot",),
-    ]
-
-    for sample in test_samples:
-        print(f"\n{'=' * 50}")
-        print(f"Sample: {sample[0]}")
-        prediction = pipeline.infer_sample(sample)
-        print(f"Prediction: {prediction}")
+    print(pipeline.infer_sample(dataset[1]))
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ import torch
 from torchinfo import summary
 from datasets import load_dataset
 
-from sympy.codegen import Print
+# from sympy.codegen import Print
 from torch.utils.data import Dataset
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
@@ -221,18 +221,16 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        inputs = self._tokenizer(sample, return_tensors="pt", truncation=True, padding=True)
+        inputs = self._tokenizer(sample[0], return_tensors="pt")
+
+        self._model.eval()
 
         with torch.no_grad():
             outputs = self._model(**inputs)
 
-        logits = outputs.logits
-        predicted_class_idx = torch.argmax(logits, dim=-1).item()
+        predictions = torch.argmax(outputs.logits).item()
 
-        if hasattr(self._model.config, 'id2label'):
-            return self._model.config.id2label.get(predicted_class_idx, str(predicted_class_idx))
-        else:
-            return str(predicted_class_idx)
+        return str(predictions)
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
