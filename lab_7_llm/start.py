@@ -15,30 +15,34 @@ def main() -> None:
     """
     Run the translation pipeline.
     """
-    settings_path = Path(__file__).parent / 'settings.json'
+    path = Path(__file__).parent / 'settings.json'
 
-    with open(settings_path, 'r', encoding='utf-8') as file:
-        settings = json.load(file)
+    with open(path, 'r', encoding='utf-8') as f:
+        settings = json.load(f)
 
-    importer = RawDataImporter(settings["parameters"]["dataset"])
-    importer.obtain()
+    dataset_name = settings['parameters']['dataset']
 
-    preprocessor = RawDataPreprocessor(raw_data=importer.raw_data)
-    preprocessor.transform()
+    data_importer = RawDataImporter(dataset_name)
+    data_importer.obtain()
 
-    analyzed_data = preprocessor.analyze()
+    data_preprocessor = RawDataPreprocessor(data_importer.raw_data)
+    result = data_preprocessor.analyze()
 
-    for k, v in analyzed_data.items():
-        print(f'{k} : {v}')
+    for key, value in result.items():
+        print(f'{key} : {value}')
 
-    dataset = TaskDataset(preprocessor.data.head(100))
+    data_preprocessor.transform()
+    dataset = TaskDataset(data_preprocessor.data.head(100))
 
-    pipeline = LLMPipeline(settings["parameters"]["model"], dataset, 120, 1, "cpu")
-    
-    analysis_result = pipeline.analyze_model()
-    print(analysis_result)
+    model = settings['parameters']['model']
+
+    pipeline = LLMPipeline(model, dataset, 120, 1, 'cpu')
+
+    for key, value in pipeline.analyze_model().items():
+        print(f'{key} : {value}')
 
     print(pipeline.infer_sample(dataset[1]))
+    assert result is not None, "Demo does not work correctly"
 
 
 if __name__ == "__main__":
