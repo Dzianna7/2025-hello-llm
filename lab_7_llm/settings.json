@@ -4,5 +4,5 @@
     "dataset": "dair-ai/emotion",
     "metrics": []
   },
-  "target_score": 6
+  "target_score": 8
 }
