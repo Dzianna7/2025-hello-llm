@@ -105,10 +105,46 @@
             }
         },
         {
+            "name": "[SEMINAR 4] Try Evaluate",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/seminars/seminar_02_02_2026/try_evaluate.py",
+            "cwd": "${workspaceFolder}/seminars/seminar_02_02_2026",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "[SEMINAR 4] Try FastAPI",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "seminars.seminar_02_02_2026.try_fastapi:app", "--reload"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
             "name": "[CHECK] UML Diagrams",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/admin_utils/uml/check_diagrams.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "[REFERENCES] SFT",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/admin_utils/references/get_sft_references.py",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "env": {

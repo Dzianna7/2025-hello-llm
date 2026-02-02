@@ -46,7 +46,7 @@ def main() -> None:
 
     # 8. Optionally save head of dataframe
     (
-        dataset_df.head(100).to_csv(
+        dataset_df.loc[:100].to_csv(
             Path(__file__).parent / "assets" / "glue_mnli_example.csv",
             index=False,
             encoding="utf-8",

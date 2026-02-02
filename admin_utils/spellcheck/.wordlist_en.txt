@@ -264,6 +264,7 @@ creating-pat
 criteria
 css
 csv
+ctrl
 cuda
 curation
 current
@@ -966,6 +967,7 @@ pydoctest
 pylint
 pyproject
 pytest
+pytestargs
 pythia
 python
 pytorch
@@ -1307,6 +1309,7 @@ vmware
 vocab
 vocabulary
 vorobiev
+vscode
 was
 we
 web

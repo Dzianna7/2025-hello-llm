@@ -12,7 +12,8 @@
     ],
     "addons": [
         {
-            "name": "core_utils"
+            "name": "core_utils",
+            "need_uml": true
         },
         {
             "name": "seminars"

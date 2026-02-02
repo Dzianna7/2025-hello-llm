@@ -1,96 +1,189 @@
 .. _running-tests-label:
 
-Working with tests: locally and in CI
-=====================================
+.. contents:: Содержание:
+   :depth: 2
 
-Running tests locally with PyCharm
-----------------------------------
 
-To configure tests locally you need to perform several steps:
+Запуск тестов: локально и в CI
+==============================
 
-1. Install tests dependencies:
+Настройка тестов в среде разработки Visual Studio Code
+------------------------------------------------------
 
-   .. code:: bash
+Чтобы настроить тесты локально, Вам потребуется выполнить следующие
+шаги:
 
-      python -m pip install -r requirements_qa.txt
-
-.. important:: Ensure you have activated your environment
-               if you have such by running ``.\venv\Scripts\activate``
-               (Windows) or ``source venv\bin\activate`` (macOS).
-
-2. Create a new configuration:
-
-   .. image:: ../images/tests/pycharm_create_configuration.jpg
-
-3. Choose ``pytest`` as a target:
-
-   .. image:: ../images/tests/pycharm_choose_pytest_template.jpg
-
-4. Fill ``pytest`` configuration and click ``OK``:
-
-   .. image:: ../images/tests/pycharm_fill_pytest_configuration.jpg
-
-5. Run ``pytest`` configuration:
-
-   .. image:: ../images/tests/pycharm_run_pytest.jpg
-
-   This should run all the tests in the repository. You can inspect them
-   by clicking through a list at the bottom of a screen.
-
-   .. image:: ../images/tests/pycharm_tests_report.png
-
-6. As you have some tests failing, you want to debug them. Then, first,
-   you need to limit a scope of running tests and the mark level you
-   want to get for an assignment. For example, you might want to run
-   checks for a crawler configuration. Then you need to return to
-   configuration menu and pass additional parameters, like
-   ``-m stage_2_1_crawler_config_check``.
-
-   .. image:: ../images/tests/pycharm_control_tests_scope.jpg
-
-   You can choose any of the labels that are described in
-   ``../pyproject.toml`` and combine with a mark.
-   For example, running the aforementioned check for configuration
-   for a mark 8 will look like
-   ``-m "mark8 and stage_2_1_crawler_config_check"``.
-
-.. hint:: To running all tests for first assignment for mark 8:
-          ``-m "mark8 and (stage_2_1_crawler_config_check or stage_2_2_crawler_check or stage_2_3_HTML_parser_check or stage_2_4_dataset_volume_check or stage_2_5_dataset_validation)"``
-
-.. hint:: When you want to debug a test, instead of running them, put
-          a breakpoint at the potentially vulnerable place of code and execute
-          debugging by clicking a ‘bug’ button.
-
-Running tests in command-line
------------------------------
-
-1. Install dependencies (assuming you have activated the environment
-   from the previous step):
+1. Установите зависимости для тестов:
 
    .. code:: bash
 
       python -m pip install -r requirements_qa.txt
 
-2. Run the tests for the given mark. You can select any level:
-   ``mark4``, ``mark6``, ``mark8``, ``mark10``:
+.. important:: Удостоверьтесь, что у Вас активировано виртуальное окружение.
+               Это делается через запуск команд ``.\venv\Scripts\activate``
+               (Windows) или ``source venv\bin\activate`` (macOS) в терминале.
 
-   .. code:: bash
+2. Создайте новую конфигурацию:
 
-      python -m pytest -m mark8
+   Чтобы создать новую конфигурацию, откройте вкладку `Testing`
+   на левой панели Visual Studio Code и нажмите кнопку
+   `Configure Python Tests` button.
 
-Running tests in CI
--------------------
+   .. image:: ../images/tests/vscode_testing_tab.png
 
-Tests will never run until you create a Pull Request.
+   Иначе Вы можете открыть настройки конфигурации через командную строку
+   Visual Studio Code.
+   Используйте сочетание клавиш `Ctrl + Shift + P`, чтобы открыть
+   командную строку. Наберите `Python: Configure Tests` в строке и
+   выберите данную опцию в списке команд.
 
-The very first check happens exactly when you create a pull request.
-After that, each time you push changes in your fork, CI check will be
-automatically started, normally within a minute or two. To see the
-results, navigate to your PR and click either the particular step in the
-report at the end of a page, or click **Checks** in the toolbar.
+   .. image:: ../images/tests/vscode_command_bar.png
+
+   Теперь Вы можете начать конфигурацию самих тестов.
+
+3. Выберите опцию ``pytest``:
+
+   .. image:: ../images/tests/vscode_tests_configuration_step_1.png
+
+4. Выберите папку для запуска тестов:
+
+   Вы можете использовать корневую папку проекта
+   или папку нужной Вам лабораторной работы.
+
+   .. image:: ../images/tests/vscode_tests_configuration_step_2.png
+
+   После выбора Visual Studio Code откроет файл `settings.json`
+   с параметрами конфигурации, а все тесты будут расположены на вкладке
+   `Testing`.
+
+
+Запуск тестов
+-------------
+
+Чтобы запустить все тесты, нажмите кнопку `Run Tests`, как показано
+на скриншоте ниже.
+
+.. image:: ../images/tests/vscode_configured_tests.png
+
+Иногда Вам может понадобиться запустить не все тесты, а выборочно
+некоторый конкретный тест, папку с тестами или файл с тестами.
+Вы можете сделать это, нажав кнопку `Run Test` рядом
+рядом с названием теста (или файла/папки с несколькими тестами),
+который Вы хотите запустить, на вкладке `Testing`. Также это можно сделать
+в самом файле с тестами, нажав на крестик/галочку (кнопку `Run Test`)
+на строке инициализации теста, как показано на скриншоте ниже.
+
+.. image:: ../images/tests/vscode_running_tests.png
+
+
+Режим отладки (debugging)
+-------------------------
+
+Если Вы хотите найти ошибки в коде, Вам понадобится запустить нужный тест
+в режиме отладки.
+Для этого Вы можете нажать на кнопку `Debug Test` с силуэтом жука рядом
+с тестом на вкладке `Testing` или нажать правой кнопкой мыши на кнопку
+`Run Test` в самом файле с тестом и выбрать опцию `Debug Test`.
+
+.. image:: ../images/tests/vscode_debugging.png
+
+Чтобы начать процесс отладки, Вам понадобится поставить точку останова
+(breakpoint) в Вашем коде или в самом тесте. Точки останова — это специальные
+маркеры, которые Вы можете поставить на потенциально уязвимые строчки кода.
+При запуске теста в режиме отладки программа приостановится на указанной
+строчке, и Вы сможете посмотреть на текущее состояние переменных, а также
+пошагово посмотреть, как работает код.
+
+.. image:: ../images/tests/breakpoints.png
+
+
+Запуск тестов в терминале
+-------------------------
+
+.. important:: Удостоверьтесь, что у Вас активировано виртуальное окружение.
+               и установлены зависимости.
+
+Команда для запуска всех тестов выглядит так:
+
+.. code:: bash
+
+   python -m pytest
+
+Чтобы запускать тесты на определённую оценку, используйте маркеры
+``mark4``, ``mark6``, ``mark8`` или ``mark10``. Например, так:
+
+.. code:: bash
+
+   python -m pytest -m mark8
+
+Чтобы запускать тесты определённой лабораторной работы, добавьте
+название папки после команды `pytest`.
+
+Например, вот так выглядит команда и полный вывод для запуска
+тестов первой лабораторной работы на оценку 4:
+
+.. image:: ../images/tests/running_from_command_line.png
+
+.. hint:: Если Вы активировали виртуальное окружение и установили
+          необходимые зависимости, Вы можете использовать `pytest`
+          без вызова `python`.
+
+
+Запуск тестов по кнопке в Visual Studio Code
+--------------------------------------------
+
+На предыдущих шагах Вы научились запускать тесты через терминал и по кнопке
+на вкладке ``Testing``.
+
+.. image:: ../images/tests/cursor_over_the_start_button.png
+
+Изначально при нажатии кнопки запуска тестов рядом с названием лабораторной
+работы запускаются все тесты, независимо от оценки (и от лабораторной работы,
+если Вы указывали корневую папку при конфигурации). Чтобы запустить их
+на определённую оценку (и для определённой лабораторной работы),
+откройте файл ``.vscode\settings.json`` и измените значение ключа
+**python.testing.pytestArgs**. По умолчанию, там будет стоять ``"."``
+или лабораторная работа, указанная при конфигурации.
+Вместо этого Вы можете выставить там нужную лабораторную работу
+вместе с флагом ``"-m"`` и желаемую оценку
+(``mark4``, ``mark6``, ``mark8`` или ``mark10``).
+
+Например, данный файл может выглядеть следующим образом:
+
+.. code:: python
+
+   {
+    "python.testing.pytestArgs": [
+        "lab_4_auto_completion",
+        "-m", "mark10"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+   }
+
+
+Запуск тестов в CI
+------------------
+
+Запуск тестов и других проверок в CI происходит в открытом
+Вами Пулл Реквесте.
+
+В самый первый раз проверки запускаются в тот момент, когда Вы
+открываете Пулл Реквест. После этого проверки запускаются только тогда,
+когда вы делаете `push` изменений в Ваш форк. Проверки CI запускаются
+автоматически, обычно через минуту.
+
+Чтобы посмотреть результаты проверок, зайдите в Ваш Пулл Реквест,
+нажмите на кнопку `details` интересующей Вас проверки, а затем на
+интересующий Вас шаг проверки.
+
+Вы можете также посмотреть проверки через вкладку `Checks` в Вашем
+Пулл Реквесте.
 
 .. image:: ../images/tests/ci_report.png
 
 .. image:: ../images/tests/ci_tab.png
 
-Inspect each step by clicking through the list to the left.
+Если проверки в CI не запускаются, удостоверьтесь, что Вы приняли
+приглашение в группу на GitHub. Обычно их высылают организованно в
+начале курса.

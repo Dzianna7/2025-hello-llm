@@ -2,6 +2,8 @@
 Checks that the model is being analyzed correctly
 """
 
+# pylint: disable=import-error
+
 import unittest
 from pathlib import Path
 

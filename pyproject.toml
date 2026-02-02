@@ -4,6 +4,18 @@ markers = [
     "mark6: tests for level 6",
     "mark8: tests for level 8",
     "mark10: tests for level 10",
+    "reference_lab_nmt: tests for NMT task",
+    "reference_lab_nmt_sft: tests for fine-tuning NMT task",
+    "reference_lab_classification: tests for classification task",
+    "reference_lab_classification_sft: tests for fine-tuning classification task",
+    "reference_lab_summarization: tests for summarization task",
+    "reference_lab_summarization_sft: tests for fine-tuning summarization task",
+    "reference_lab_nli: tests for nli task",
+    "reference_lab_nli_sft: tests for fine-tuning nli task",
+    "reference_lab_ner: tests for NER task",
+    "reference_lab_ner_sft: tests for fine-tuning NER task",
+    "reference_lab_generation: tests for generation task",
+    "reference_lab_open_qa: tests for open generative Q&A task",
     "lab_7_llm: tests for lab 7",
 ]
 norecursedirs = [
@@ -71,6 +83,17 @@ src_paths = [
     "admin_utils",
     "core_utils",
     "lab_7_llm",
+    "reference_lab_classification",
+    "reference_lab_classification_sft",
+    "reference_lab_summarization",
+    "reference_lab_summarization_sft",
+    "reference_lab_ner",
+    "reference_lab_nmt",
+    "reference_lab_nmt_sft",
+    "reference_lab_nli",
+    "reference_lab_nli_sft",
+    "reference_lab_generation",
+    "reference_lab_open_qa",
 ]
 
 [tool.mypy]
@@ -99,23 +122,11 @@ disable_error_code = [
 
 [[tool.mypy.overrides]]
 module = [
-    'ast_comments',
-    'datasets',
     'evaluate',
-    'fastapi',
-    'ghapi.all',
     'peft',
-    'pydantic',
     'torch.*',
-    'transformers'
 ]
 ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = ['seminars.*', ]
-disable_error_code = [
-    'empty-body'
-]
 
 [[tool.mypy.overrides]]
 module = [
@@ -129,18 +140,37 @@ module = [
 disable_error_code = [
     'import-untyped',
     'no-any-return',
-    'no-any-unimported'
+    'no-any-unimported',
+    'import-not-found',
+]
+
+[[tool.mypy.overrides]]
+module = [
+    'lab_7_llm.service',
+]
+disable_error_code = [
+    'no-any-unimported',
+    'empty-body',
+    'name-defined',
+]
+
+[[tool.mypy.overrides]]
+module = [
+    'lab_7_llm.main',
+]
+disable_error_code = [
+    'no-any-unimported',
+    'empty-body',
+    'name-defined',
 ]
 
 [[tool.mypy.overrides]]
 module = [
     'core_utils.llm.llm_pipeline',
     'core_utils.llm.sft_pipeline',
-    'lab_7_llm.service',
-    'lab_7_llm.main',
 ]
 disable_error_code = [
-    'no-any-unimported'
+    'no-any-unimported',
 ]
 
 [[tool.mypy.overrides]]
@@ -152,18 +182,14 @@ module = [
 ]
 disable_error_code = [
     'import-not-found',
-    'no-any-unimported',
-    'assignment'
 ]
 
 [[tool.mypy.overrides]]
 module = [
-    '*.main',
-    '*.main_stub',
-    '*.start',
-    '*.start_stub',
-    '*.service',
-    '*.service_stub',
+    'lab_7_llm.main_stub',
+    'lab_7_llm.start',
+    'lab_7_llm.start_stub',
+    'lab_7_llm.service_stub',
 ]
 disable_error_code = [
     'empty-body',
@@ -177,6 +203,16 @@ module = [
 ]
 disable_error_code = [
     'no-redef',
+    'import-not-found',
+]
+
+[[tool.mypy.overrides]]
+module = [
+    'seminars.seminar_02_02_2026.try_fastapi',
+]
+disable_error_code = [
+    'import-not-found',
+    'no-any-unimported',
 ]
 
 [tool.logging]
@@ -654,7 +690,7 @@ ignore-imports = true
 ignore-signatures = true
 
 # Minimum lines number of a similarity.
-min-similarity-lines = 4
+min-similarity-lines = 5
 
 [tool.pylint.spelling]
 # Limits count of emitted suggestions for spelling mistakes.

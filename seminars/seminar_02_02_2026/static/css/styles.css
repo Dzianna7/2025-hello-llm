@@ -1,0 +1,11 @@
+h1 {
+    font-family: sans-serif;
+    color: darkslategray;
+    padding-right: 10px;
+}
+
+div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

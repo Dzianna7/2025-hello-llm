@@ -67,7 +67,7 @@ def main() -> None:
 
     # 1. Load dataset
     data = load_dataset("s-nlp/ru_paradetox_toxicity", split="train").to_pandas()
-    dataset = TaskDataset(data.head(100))
+    dataset = TaskDataset(data.loc[:100])
 
     # 2. Get data loader with batch 1
     dataset_loader = DataLoader(dataset)

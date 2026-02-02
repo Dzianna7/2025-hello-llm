@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Hello LLM!</title>
+        <link href="{{ url_for('static', path='/css/styles.css') }}" rel="stylesheet">
+    </head>
+    <body>
+        <div>
+            <h1>Hello LLM!</h1>
+            <button>Change color</button>
+            <div>{{random_name}}</div>
+        </div>
+    </body>
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+</html>

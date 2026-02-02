@@ -36,3 +36,4 @@
     ../docs/public/lectures_content_ru.rst
     ../docs/public/starting_guide_ru.rst
     ../docs/public/tests.rst
+    ../docs/public/run_in_terminal_ru.rst

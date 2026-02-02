@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Callable, Optional, Protocol
+from typing import Any, Callable, Protocol
 
 import torch  # type: ignore
 from torch.utils.data.dataset import Dataset
@@ -22,6 +22,7 @@ class TrainingArguments:
         save_strategy: str,
         load_best_model_at_end: bool,
         remove_unused_columns: bool = True,
+        seed: int = 42,
     ): ...
 
 class Trainer:

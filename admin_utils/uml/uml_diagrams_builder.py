@@ -1,37 +1,31 @@
 """
-UML Diagram Generator for Labs
+UML Diagram Generator for Labs and Core Utils Packages
 
-Generates structural diagrams based exclusively on main.py in each lab:
-- Class diagrams (via AST) if main.py contains class definitions.
-- Function diagrams (via AST) if main.py contains only functions.
+Generates structural diagrams:
+- For labs: based exclusively on main.py in each lab folder.
+- For addons:
+    - If the addon directory contains immediate subdirectories (excluding __pycache__,
+      private (_*) and hidden (.*)), a diagram is generated for each such subdirectory.
+    - Otherwise, a single diagram is generated for the addon directory itself.
 
-Workflow:
-1. Reads only main.py from the lab folder.
-2. Uses AST to detect presence of classes.
-3. Generates a deterministic DOT representation:
-   - For classes: shows class name, fields, methods.
-   - For functions: shows function names as nodes linked from main.py.
-4. Renders DOT to assets/description.png using Graphviz (dot).
+Diagrams are either:
+- Class diagram (if any .py file in the scope contains class definitions).
+- Function diagram (otherwise).
+
+All rendering is deterministic via Graphviz.
 
 Requirements:
 - Graphviz must be installed and available in PATH.
 """
 
 import ast
-import json
 import os
-import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
-
-# pylint: disable=wrong-import-position
 from quality_control.cli_unifier import _run_console_tool, handles_console_error
+from quality_control.project_config import Addon, Lab, ProjectConfig
 
-from admin_utils.constants import PROJECT_CONFIG_PATH
-
-# pylint: enable=wrong-import-position
+from admin_utils.constants import PROJECT_CONFIG_PATH, PROJECT_ROOT
 
 
 @handles_console_error()
@@ -60,123 +54,78 @@ def _run_dot(input_path: Path, output_path: Path) -> tuple[str, str, int]:
     )
 
 
-def extract_functions(py_file: Path) -> list[str]:
+def get_python_files_in_package(package_dir: Path) -> list[Path]:
     """
-    Parses the given Python file and collects names of all top-level
-    function definitions (excluding nested or lambda functions and dunder methods).
+    Return sorted list of all .py files in package_dir (recursive).
 
     Args:
-        py_file (Path): Path to the Python source file.
+        package_dir (Path): Path to the root directory of a Python package.
 
     Returns:
-        list[str]: Sorted list of function names defined in the file.
+        list[Path]: Sorted list of Path objects pointing to all .py files
+                    found recursively under package_dir.
+    """
+    return sorted(package_dir.rglob("*.py"))
+
+
+def has_classes_in_files(py_files: list[Path]) -> bool:
+    """
+    Check if any of the given Python files contains a class definition.
+
+    Args:
+        py_files (list[Path]): List of paths to Python source files.
+
+    Returns:
+        bool: True if at least one file contains a top-level or nested class
+              definition, False otherwise or if all files are
+              unreadable or syntactically invalid.
+    """
+    for py_file in py_files:
+        try:
+            tree = ast.parse(py_file.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ClassDef):
+                    return True
+        except (SyntaxError, UnicodeDecodeError):
+            continue
+    return False
+
+
+def extract_functions(py_file: Path) -> list[str]:
+    """
+    Extract all function names from a Python file.
+
+    Args:
+        py_file (Path): Path to a Python source file.
+
+    Returns:
+        list[str]: Sorted list of function names (instances of ast.FunctionDef).
+                   Returns empty list on parse error.
     """
     functions = []
     try:
         tree = ast.parse(py_file.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef):
-                if not (node.name.startswith("__") and node.name.endswith("__")):
-                    functions.append(node.name)
+                functions.append(node.name)
     except (SyntaxError, UnicodeDecodeError):
         pass
     return sorted(functions)
 
 
-def generate_function_diagram_dot_from_main(lab_folder: Path) -> str | None:
-    """
-    Generate DOT content for function-level diagram based only on main.py.
-
-    Args:
-        lab_folder (Path): Path to the lab directory.
-
-    Returns:
-        str | None: DOT content as string, or None if main.py is missing or has no functions.
-    """
-    main_py = lab_folder / "main.py"
-    if not main_py.exists():
-        return None
-
-    functions = extract_functions(main_py)
-    if not functions:
-        return None
-
-    lines = [
-        "digraph Functions {",
-        "  graph [ordering=out, rankdir=LR, nodesep=0.4, ranksep=0.6,"
-        'bgcolor=white, size="10,5!", overlap=false, splines=true];',
-        '  node [shape=box, style=filled, fillcolor="#E0F0FF", fontname="Arial"];',
-        '  main [label="main.py", shape=folder, fillcolor="#FFE0E0"];',
-    ]
-
-    for func in functions:
-        lines.append(f'  "{func}" [label="{func}()"];')
-        lines.append(f'  main -> "{func}";')
-
-    lines.append("}")
-    return "\n".join(lines) + "\n"
-
-
-def generate_module_diagram(lab_folder: Path, output_dir: Path) -> bool:
-    """
-    Generate function-level diagram PNG from main.py.
-
-    Args:
-        lab_folder (Path): Path to the lab directory.
-        output_dir (Path): Directory to save description.png.
-
-    Returns:
-        bool: True if PNG was saved successfully.
-    """
-    dot_content = generate_function_diagram_dot_from_main(lab_folder)
-    if dot_content is None:
-        return False
-
-    dot_path = output_dir / "temp.dot"
-    png_path = output_dir / "description.png"
-
-    try:
-        dot_path.write_text(dot_content, encoding="utf-8")
-        _, _, exit_code = _run_dot(dot_path, png_path)
-        return exit_code == 0 and png_path.exists()
-    finally:
-        dot_path.unlink(missing_ok=True)
-
-
-def has_classes_in_main(lab_folder: Path) -> bool:
-    """
-    Check if main.py in the lab contains any class definitions.
-
-    Args:
-        lab_folder (Path): Path to the lab directory.
-
-    Returns:
-        bool: True if main.py exists and contains at least one class, False otherwise.
-    """
-    main_py = lab_folder / "main.py"
-    if not main_py.exists():
-        return False
-    try:
-        tree = ast.parse(main_py.read_text(encoding="utf-8"))
-        for node in ast.walk(tree):
-            if isinstance(node, ast.ClassDef):
-                return True
-    except (SyntaxError, UnicodeDecodeError):
-        pass
-    return False
-
-
-def _extract_class_members(class_node: ast.ClassDef) -> tuple[list[str], list[str]]:
+def extract_class_members(class_node: ast.ClassDef) -> tuple[list[str], list[str]]:
     """
     Extract field and method names from a ClassDef AST node.
 
     Args:
-        class_node (ast.ClassDef): The AST node representing a class definition.
+        class_node (ast.ClassDef): An AST node representing a Python class.
 
     Returns:
-        tuple[list[str], list[str]]: A tuple containing two sorted lists
-        field names (attributes assigned in class body)
-        and method names (excluding dunder methods)
+        tuple[list[str], list[str]]: A 2-tuple where:
+            - First element is a sorted list of field names (from AnnAssign
+              and Assign statements targeting simple names).
+            - Second element is a sorted list of method names (from FunctionDef
+              nodes directly in the class body).
     """
     fields = set()
     methods = set()
@@ -189,63 +138,142 @@ def _extract_class_members(class_node: ast.ClassDef) -> tuple[list[str], list[st
                 if isinstance(target, ast.Name):
                     fields.add(target.id)
         elif isinstance(item, ast.FunctionDef):
-            if not (item.name.startswith("__") and item.name.endswith("__")):
-                methods.add(item.name)
+            methods.add(item.name)
 
     return sorted(fields), sorted(methods)
 
 
-def extract_classes_from_main(main_py: Path) -> list[dict]:
+def extract_classes_from_file(py_file: Path) -> list[dict]:
     """
-    Extract class definitions from main.py for UML diagram.
-
-    Each class dict contains:
-    - 'name': str
-    - 'fields': sorted list of field names
-    - 'methods': sorted list of method names (excluding __dunder__)
+    Extract class info (name, fields, methods) from a Python file.
 
     Args:
-        main_py (Path): Path to main.py.
+        py_file (Path): Path to a Python source file.
 
     Returns:
-        list[dict]: List of class info dictionaries.
+        list[dict]: List of dictionaries, each representing a class with keys:
+            - "name" (str): Class name.
+            - "fields" (list[str]): Sorted list of field names.
+            - "methods" (list[str]): Sorted list of method names.
+            The list is sorted by class name. Returns empty list on parse error.
     """
     classes = []
     try:
-        tree = ast.parse(main_py.read_text(encoding="utf-8"))
+        tree = ast.parse(py_file.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
-                fields, methods = _extract_class_members(node)
-                classes.append(
-                    {
-                        "name": node.name,
-                        "fields": fields,
-                        "methods": methods,
-                    }
-                )
+                fields, methods = extract_class_members(node)
+                classes.append({"name": node.name, "fields": fields, "methods": methods})
     except (SyntaxError, UnicodeDecodeError):
         pass
     return sorted(classes, key=lambda c: c["name"])
 
 
-def generate_class_diagram_dot_from_main(lab_folder: Path) -> str | None:
+def generate_function_diagram_dot(
+    py_files: list[Path], root_label: str, root_shape: str = "folder"
+) -> str | None:
     """
-    Generate deterministic DOT content for class diagram based only on main.py.
+    Generate function diagram DOT from a list of Python files.
 
     Args:
-        lab_folder (Path): Path to the lab directory.
+        py_files (list[Path]): List of paths to Python files to analyze.
+        root_label (str): Label for the root node in the diagram.
+        root_shape (str): Graphviz shape for the root node (default: "folder").
 
     Returns:
-        str | None: DOT content as string, or None if main.py is missing or has no classes.
+        str | None: Valid Graphviz DOT string describing a function diagram,
+                    or None if no functions were found in any of the files.
     """
-    main_py = lab_folder / "main.py"
-    if not main_py.exists():
+    functions = set()
+    for f in py_files:
+        functions.update(extract_functions(f))
+    function_names = sorted(functions)
+    if not function_names:
         return None
 
-    classes = extract_classes_from_main(main_py)
-    if not classes:
+    lines = [
+        "digraph Functions {",
+        "  graph [ordering=out, rankdir=LR, nodesep=0.4, ranksep=0.6,"
+        'bgcolor=white, size="10,5!", overlap=false, splines=true];',
+        '  node [shape=box, style=filled, fillcolor="#E0F0FF", fontname="Arial"];',
+        f'  main [label="{root_label}", shape={root_shape}, fillcolor="#FFE0E0"];',
+    ]
+    for func in function_names:
+        lines.append(f'  "{func}" [label="{func}()"];')
+        lines.append(f'  main -> "{func}";')
+    lines.append("}")
+    return "\n".join(lines) + "\n"
+
+
+def collect_classes_and_inheritance(
+    py_files: list[Path], include_inheritance: bool
+) -> tuple[list[dict[str, str | list[str]]], set[tuple[str, str]]]:
+    """
+    Extract class info and inheritance relations from Python files.
+
+    Args:
+        py_files (list[Path]): List of paths to Python files to collect classes from.
+        include_inheritance (bool): Whether to extract base class names for inheritance edges.
+
+    Returns:
+        tuple[list[dict[str, str | list[str]]], set[tuple[str, str]]]:
+            - First element: list of class descriptors, each with keys:
+                - "name" (str): class name,
+                - "fields" (list[str]): field names defined at class level,
+                - "methods" (list[str]): method names.
+            - Second element: set of (child_class_name, parent_class_name) tuples
+              representing direct inheritance relationships found in the same files.
+    """
+    classes: list[dict[str, str | list[str]]] = []
+    inheritance_relations: set[tuple[str, str]] = set()
+
+    for py_file in py_files:
+        try:
+            tree = ast.parse(py_file.read_text(encoding="utf-8"))
+        except (SyntaxError, UnicodeDecodeError):
+            continue
+
+        class_nodes = [node for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
+
+        for node in class_nodes:
+            fields, methods = extract_class_members(node)
+            classes.append({"name": node.name, "fields": fields, "methods": methods})
+
+        if include_inheritance:
+            for node in class_nodes:
+                for base in node.bases:
+                    if isinstance(base, ast.Name):
+                        inheritance_relations.add((node.name, base.id))
+
+    return classes, inheritance_relations
+
+
+def generate_class_diagram_dot(
+    py_files: list[Path], include_inheritance: bool = False
+) -> str | None:
+    """
+    Generate class diagram DOT from a list of Python files.
+
+    Inheritance only works if the base class is defined
+    in the same file or its name is available as a simple name (ast.Name).
+
+    Args:
+        py_files (list[Path]): List of paths to Python files to analyze.
+        include_inheritance (bool): Whether to include inheritance edges
+                                    between classes (default: False).
+
+    Returns:
+        str | None: Valid Graphviz DOT string describing a UML-like class diagram,
+                    or None if no classes were found in any of the files.
+    """
+    all_classes, inheritance_relations = collect_classes_and_inheritance(
+        py_files, include_inheritance
+    )
+
+    if not all_classes:
         return None
 
+    all_classes = sorted(all_classes, key=lambda c: c["name"])
     lines = [
         "digraph UML {",
         "  graph [ordering=out, rankdir=BT, nodesep=0.5, ranksep=0.75, bgcolor=white,"
@@ -253,117 +281,189 @@ def generate_class_diagram_dot_from_main(lab_folder: Path) -> str | None:
         '  node [shape=record, style=filled, fillcolor=white, fontname="Arial"];',
     ]
 
-    relations = set()
-    try:
-        tree = ast.parse(main_py.read_text(encoding="utf-8"))
-        for node in ast.walk(tree):
-            if isinstance(node, ast.ClassDef):
-                for base in node.bases:
-                    if isinstance(base, ast.Name):
-                        parent_name = base.id
-                        relations.add((node.name, parent_name))
-    except (SyntaxError, UnicodeDecodeError):
-        pass
-
-    for cls in classes:
+    for cls in all_classes:
         fields_str = "\\n".join(f"\u200b{f}" for f in cls["fields"]) if cls["fields"] else ""
         methods_str = "\\n".join(f"\u200b{m}()" for m in cls["methods"]) if cls["methods"] else ""
-
-        if not cls["fields"]:
-            label = f"{{{cls['name']}||{methods_str}}}"
-        else:
-            label = f"{{{cls['name']}|{fields_str}|{methods_str}}}"
-
+        label = (
+            f"{{{cls['name']}|{fields_str}|{methods_str}}}"
+            if cls["fields"]
+            else f"{{{cls['name']}||{methods_str}}}"
+        )
         lines.append(f'  "{cls["name"]}" [label="{label}"];')
 
-    for child, parent in sorted(relations):
-        lines.append(f'  "{child}" -> "{parent}" [arrowhead=empty];')
+    if include_inheritance:
+        for child, parent in sorted(inheritance_relations):
+            lines.append(f'  "{child}" -> "{parent}" [arrowhead=empty];')
 
     lines.append("}")
     return "\n".join(lines) + "\n"
 
 
-def generate_class_diagram(lab_folder: Path, output_dir: Path) -> bool:
+def render_dot_to_png(dot_content: str | None, output_png: Path) -> bool:
     """
-    Generate UML class diagram PNG from main.py.
+    Render DOT content to PNG; return True on success.
 
     Args:
-        lab_folder (Path): Path to the lab directory.
-        output_dir (Path): Directory to save description.png.
+        dot_content (str | None): Graphviz DOT source as a string, or None.
+        output_png (Path): Path where the resulting PNG image will be saved.
 
     Returns:
-        bool: True if PNG was saved successfully.
+        bool: True if dot_content is not None, the temporary DOT file was written,
+              the Graphviz `dot` command succeeded, and the output PNG exists;
+              False otherwise.
     """
-    dot_content = generate_class_diagram_dot_from_main(lab_folder)
     if dot_content is None:
         return False
 
+    output_dir = output_png.parent
+    output_dir.mkdir(parents=True, exist_ok=True)
     dot_path = output_dir / "temp.dot"
-    png_path = output_dir / "description.png"
 
     try:
         dot_path.write_text(dot_content, encoding="utf-8")
-        _, _, exit_code = _run_dot(dot_path, png_path)
-        return exit_code == 0 and png_path.exists()
+        _, _, exit_code = _run_dot(dot_path, output_png)
+        return exit_code == 0 and output_png.exists()
     finally:
         dot_path.unlink(missing_ok=True)
 
 
-def generate_uml_diagrams(lab_folder: Path) -> bool:
+def generate_lab_main_diagram(lab_folder: Path) -> bool:
     """
-    Generate appropriate UML diagram for a lab based on main.py content.
+    Generate UML diagram for a lab based solely on its main.py.
 
     Args:
         lab_folder (Path): Path to the lab directory.
 
     Returns:
-        bool: True if diagram generation succeeded, otherwise False.
+        bool: True if diagram was successfully generated.
     """
-    lab_folder = Path(lab_folder).resolve()
-    assets_dir = lab_folder / "assets"
-    output_dir = assets_dir if assets_dir.is_dir() else lab_folder
-    output_dir.mkdir(exist_ok=True)
+    main_py = lab_folder / "main.py"
+    if not main_py.exists():
+        return False
 
-    if has_classes_in_main(lab_folder):
-        return generate_class_diagram(lab_folder, output_dir)
-    return generate_module_diagram(lab_folder, output_dir)
+    py_files = [main_py]
+    assets_dir = lab_folder / "assets"
+    png_path = assets_dir / "description.png"
+
+    if has_classes_in_files(py_files):
+        dot_content = generate_class_diagram_dot(py_files, include_inheritance=True)
+    else:
+        dot_content = generate_function_diagram_dot(py_files, root_label="main.py")
+
+    return render_dot_to_png(dot_content, png_path)
+
+
+def generate_package_diagram(package_dir: Path, output_png: Path) -> bool:
+    """
+    Generate UML diagram for a package (all .py files recursively).
+
+    Inheritance across files is NOT analyzed.
+
+    Args:
+        package_dir (Path): Path to the package (e.g., core_utils/llm).
+        output_png (Path): Full path to output PNG file.
+
+    Returns:
+        bool: True if diagram was successfully generated.
+    """
+    py_files = get_python_files_in_package(package_dir)
+    if not py_files:
+        return False
+
+    if has_classes_in_files(py_files):
+        dot_content = generate_class_diagram_dot(py_files, include_inheritance=True)
+    else:
+        dot_content = generate_function_diagram_dot(py_files, root_label=f"{package_dir.name}/")
+
+    return render_dot_to_png(dot_content, output_png)
+
+
+def process_lab(lab: Lab, root_dir: Path) -> None:
+    """
+    Process a single lab from config.
+
+    Args:
+        lab_info (Lab): Lab entry from project_config.json.
+        root_dir (Path): The root directory of the project, used to resolve
+                         the absolute path to the lab folder.
+    """
+    lab_name = lab.name
+    lab_path = root_dir / lab_name
+    if not lab_path.exists():
+        print(f"Lab folder not found: {lab_path}")
+        return
+    print(f"\nProcessing {lab_name}...")
+    success = generate_lab_main_diagram(lab_path)
+    status = "generated successfully" if success else "failed"
+    print(status)
+
+
+def subdirs_to_list(addon_path: Path) -> list[Path]:
+    """
+    Make a list of subpackages' paths that are not private or hidden.
+
+    Args:
+        addon_path(Path): Path to the addon with subpackages to consider.
+
+    Returns:
+        list(str): The list of subpackages' paths.
+    """
+    return [
+        item
+        for item in addon_path.iterdir()
+        if item.is_dir() and not item.name.startswith(("_", "."))
+    ]
+
+
+def process_addon(addon: Addon, root_dir: Path) -> None:
+    """
+    Process a single addon from config.
+
+    Args:
+        addon_info (dict): Addon entry from project_config.json.
+        root_dir (Path): The root directory of the project, used to resolve
+                         the absolute path to the addon folder.
+    """
+    if not addon.need_uml:
+        return
+    addon_name = addon.name
+    addon_path = root_dir / addon_name
+    if not addon_path.is_dir():
+        print(f"Addon folder not found: {addon_path}")
+        return
+
+    subdirs = subdirs_to_list(addon_path)
+    if subdirs:
+        for subdir in subdirs:
+            output_png = subdir / "assets" / "description.png"
+            print(f"\nProcessing subpackage: {subdir.relative_to(root_dir)}...")
+            success = generate_package_diagram(subdir, output_png)
+            status = "generated successfully" if success else "failed"
+            print(status)
+    else:
+        output_png = addon_path / "assets" / "description.png"
+        print(f"\nProcessing leaf addon: {addon_name}...")
+        success = generate_package_diagram(addon_path, output_png)
+        status = "generated successfully" if success else "failed"
+        print(status)
 
 
 def main() -> None:
     """
-    Generate diagrams for all labs in project_config.json.
-
-    Reads the project configuration, iterates through all registered labs,
-    and triggers diagram generation for each one. Skips missing lab folders.
+    Main entry point: process labs and addons.
     """
     if not PROJECT_CONFIG_PATH.exists():
         print(f"Config file not found: {PROJECT_CONFIG_PATH}")
         return
 
-    with open(PROJECT_CONFIG_PATH, "r", encoding="utf-8") as f:
-        config = json.load(f)
+    project_config = ProjectConfig(PROJECT_CONFIG_PATH)
 
-    root_dir = PROJECT_CONFIG_PATH.parent
-    labs = config.get("labs", [])
+    for lab in project_config.get_labs():
+        process_lab(lab, PROJECT_ROOT)
 
-    print(f"Found {len(labs)} labs in config")
-
-    for lab_info in labs:
-        lab_name = lab_info["name"]
-
-        if not lab_name.startswith("lab_"):
-            continue
-
-        lab_path = root_dir / lab_name
-        if not lab_path.exists():
-            print(f"Lab folder not found: {lab_path}")
-            continue
-
-        print(f"\nProcessing {lab_name}...")
-        if generate_uml_diagrams(lab_path):
-            print("Diagram generated successfully")
-        else:
-            print("Failed to generate diagram")
+    for addon in project_config.get_addons():
+        if addon.need_uml:
+            process_addon(addon, PROJECT_ROOT)
 
 
 if __name__ == "__main__":

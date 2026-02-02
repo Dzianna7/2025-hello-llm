@@ -7,6 +7,7 @@ if [[ "$1" == "public" ]]; then
     "admin_utils"
     "core_utils"
     "seminars"
+    "lab_7_llm"
   )
 else
   DIRS_TO_CHECK=(
@@ -53,12 +54,13 @@ isort .
 
 python -m pylint "${DIRS_TO_CHECK[@]}"
 
+rm -rf .mypy_cache
 mypy "${DIRS_TO_CHECK[@]}"
 
 python -m flake8 "${DIRS_TO_CHECK[@]}"
 
 if [[ "$1" != "public" ]]; then
-  python admin_utils/uml/check_diagrams.py
+  # python admin_utils/uml/uml_diagrams_builder.py
 
   pydoctest --config pydoctest.json
 

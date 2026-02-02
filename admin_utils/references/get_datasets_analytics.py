@@ -9,6 +9,12 @@ from pathlib import Path
 
 from tqdm import tqdm
 
+try:
+    from transformers import set_seed
+except ImportError:
+    print('Library "transformers" not installed. Failed to import.')
+
+from admin_utils.constants import GLOBAL_SEED
 from admin_utils.references.get_model_analytics import get_references, save_reference
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
 from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor
@@ -107,6 +113,8 @@ def main() -> None:
     """
     Run the collect dataset analytics.
     """
+    set_seed(GLOBAL_SEED)
+
     references_dir = Path(__file__).parent / "gold"
     references_path = references_dir / "reference_scores.json"
     destination_path = references_dir / "reference_dataset_analytics.json"

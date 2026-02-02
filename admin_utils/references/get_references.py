@@ -10,7 +10,12 @@ from typing import Any
 from pydantic.dataclasses import dataclass
 from tqdm import tqdm
 
-from admin_utils.constants import DEVICE
+try:
+    from transformers import set_seed
+except ImportError:
+    print('Library "transformers" not installed. Failed to import.')
+
+from admin_utils.constants import DEVICE, GLOBAL_SEED
 from admin_utils.references.get_model_analytics import get_references, save_reference
 from admin_utils.references.helpers import (
     collect_combinations,
@@ -91,6 +96,8 @@ def main() -> None:
     """
     Run collected reference scores.
     """
+    set_seed(GLOBAL_SEED)
+
     project_root = Path(__file__).parent.parent.parent
     references_dir = project_root / "admin_utils" / "references" / "gold"
     references_path = references_dir / "reference_scores.json"

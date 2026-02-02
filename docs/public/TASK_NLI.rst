@@ -46,28 +46,7 @@ Datasets
       9. Map ``target`` with class labels.
       10. Reset indexes.
 
-2. `Russian Super GLUE TERRA <https://huggingface.co/datasets/RussianNLP/russian_super_glue>`__
-
-   1. **Lang**: RU
-   2. **Rows**: 307
-   3. **Preprocess**:
-
-      1. Select ``terra`` subset.
-      2. Select ``validation`` split.
-      3. Rename column ``label`` to  ``target``.
-      4. Delete duplicates in dataset.
-      5. Delete empty rows in dataset.
-      6. Reset indexes.
-
-.. note::
-
-   When obtaining this dataset, pass the following parameters to the call of
-   ``load_dataset``:
-
-   - ``revision="refs/convert/parquet"``
-   - ``data_files={"train": f"{self._hf_name}/validation/*.parquet"}``
-
-3. `XNLI <https://huggingface.co/datasets/facebook/xnli>`__
+2. `XNLI <https://huggingface.co/datasets/facebook/xnli>`__
 
    1. **Lang**: RU
    2. **Rows**: 2490
@@ -80,7 +59,7 @@ Datasets
       5. Delete empty rows in dataset.
       6. Reset indexes.
 
-4. `GLUE QNLI <https://huggingface.co/datasets/nyu-mll/glue>`__
+3. `GLUE QNLI <https://huggingface.co/datasets/nyu-mll/glue>`__
 
    1. **Lang**: EN
    2. **Rows**: 5463
@@ -96,7 +75,7 @@ Datasets
       8. Map ``target`` with class labels.
       9. Reset indexes.
 
-5. `GLUE MNLI <https://huggingface.co/datasets/nyu-mll/glue>`__
+4. `GLUE MNLI <https://huggingface.co/datasets/nyu-mll/glue>`__
 
    1. **Lang**: EN
    2. **Rows**: 9815

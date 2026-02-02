@@ -2,7 +2,7 @@
 Checks the inference of the model
 """
 
-# pylint: disable=R0801
+# pylint: disable=R0801, import-error
 import unittest
 from pathlib import Path
 

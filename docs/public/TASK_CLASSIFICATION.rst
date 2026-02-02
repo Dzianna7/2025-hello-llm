@@ -87,9 +87,9 @@ Datasets
          7. Other labels to label ``8``.
 
       9. Drop label ``8`` from ``target``.
-      10. Put ``target`` labels in order: ``1`` to ``0`` (joy), ``2`` to ``1``
+      10. Map ``target`` labels to sequential numbers: ``1`` to ``0`` (joy), ``2`` to ``1``
           (sadness), ``3`` to ``2`` (fear), ``4`` to ``3`` (anger), ``6`` to
-          ``4`` (neutral), ``7`` to ``5`` (other) and
+          ``4`` (neutral), ``7`` to ``5`` (other).
       11. Clean column ``source``.
       12. Reset indexes.
 
@@ -123,7 +123,7 @@ Datasets
    3. **Preprocess**:
 
       1. Select ``test`` split.
-      2. Rename column ``labels`` to ``target``.
+      2. Rename column ``label`` to ``target``.
       3. Rename column ``text`` to ``source``.
       4. Reset indexes.
 
@@ -149,7 +149,7 @@ Datasets
    2. **Rows**: 36591
    3. **Preprocess**:
 
-      1. Select ``validation`` split.
+      1. Select ``train`` split.
       2. Leave only ``content`` and ``grade3`` columns.
       3. Rename column ``grade3`` to ``target``.
       4. Rename column ``content`` to ``source``.
