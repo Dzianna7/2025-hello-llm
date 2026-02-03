@@ -10,6 +10,7 @@ Working with Large Language Models.
 from pathlib import Path
 from typing import Iterable, Sequence
 
+import evaluate
 import pandas as pd
 import torch
 from datasets import load_dataset
@@ -38,12 +39,11 @@ class RawDataImporter(AbstractRawDataImporter):
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
 
-        dataset = load_dataset("dair-ai/emotion", split="validation")
-        dataframe = dataset.to_pandas()
+        dataframe = load_dataset("dair-ai/emotion", split="validation").to_pandas()
         self._raw_data = dataframe
 
         if not isinstance(self._raw_data, pd.DataFrame):
-            raise TypeError("Downloaded dataset is not pd.DataFrame")
+            raise TypeError("Dataset is not pd.DataFrame")
 
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
@@ -69,19 +69,9 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         # 4. Number of empty rows
         empty_rows = int(self._raw_data.isna().all(axis=1).sum())
 
-        # 5. Minimum and maximum length
-        if self._raw_data.empty:
-            min_len = max_len = 0
-        else:
-            text_cols = [col for col in self._raw_data.columns
-                         if self._raw_data[col].dtype == 'object' or pd.api.types.is_string_dtype(self._raw_data[col])]
-
-            df_to_use = self._raw_data[text_cols] if text_cols else self._raw_data
-            df_str = df_to_use.fillna('').astype(str)
-
-            lengths = df_str.apply(lambda row: len(' '.join(row.values).strip()), axis=1)
-            min_len = int(lengths.min())
-            max_len = int(lengths.max())
+        # 4. Min and max length of the text
+        max_len = int(self._raw_data['text'].str.len().max())
+        min_len = int(self._raw_data['text'].str.len().min())
 
         return {
             "dataset_number_of_samples": num_samples,
@@ -91,6 +81,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             "dataset_sample_min_len": min_len,
             "dataset_sample_max_len": max_len
         }
+
     @report_time
     def transform(self) -> None:
         """
@@ -136,8 +127,8 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
-        row = self._data.iloc[index]
-        return tuple(str(value) for value in row)
+        text = str(self._data.iloc[index]["source"])
+        return (text,)
 
     @property
     def data(self) -> pd.DataFrame:
@@ -174,7 +165,13 @@ class LLMPipeline(AbstractLLMPipeline):
         self._device = device
 
         self._tokenizer = AutoTokenizer.from_pretrained("aiknowyou/it-emotion-analyzer")
-        self._model = AutoModelForSequenceClassification.from_pretrained("aiknowyou/it-emotion-analyzer").to(device)
+        self._model = AutoModelForSequenceClassification.from_pretrained(
+            self._model_name,
+            num_labels=6
+        ).to(device)
+
+
+        self._model.eval()
 
 
     def analyze_model(self) -> dict:
@@ -185,8 +182,18 @@ class LLMPipeline(AbstractLLMPipeline):
             dict: Properties of a model
         """
         config = self._model.config
-        input_ids = torch.ones((1, config.max_position_embeddings), dtype=torch.long)
-        tokens = {"input_ids": input_ids, "attention_mask": input_ids}
+
+        input_ids = torch.ones(
+            (1, config.max_position_embeddings),
+            dtype=torch.long
+        )
+
+        attention_mask = torch.ones_like(input_ids)
+
+        tokens = {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask
+        }
 
         stats = summary(
             self._model,
@@ -208,7 +215,7 @@ class LLMPipeline(AbstractLLMPipeline):
             "size": stats.total_param_bytes,
             "max_context_length": config.max_length
         }
-    
+
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
         """
@@ -220,16 +227,34 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        inputs = self._tokenizer(sample[0], return_tensors="pt")
+        if not sample or len(sample) == 0:
+            return None
 
-        self._model.eval()
+        text = sample[0]
+
+        inputs = self._tokenizer(
+            text,
+            return_tensors="pt",
+            truncation=True,
+            padding='max_length',
+            max_length=self._max_length,
+            add_special_tokens=True
+        )
+
+        inputs = {k: v.to(self._device) for k, v in inputs.items()}
 
         with torch.no_grad():
             outputs = self._model(**inputs)
+            logits = outputs.logits
+            probabilities = torch.nn.functional.softmax(logits, dim=-1)
 
-        predictions = torch.argmax(outputs.logits).item()
+            max_prob = torch.max(probabilities).item()
+            if max_prob < 0.5:  # Порог уверенности
+                return "3"
 
-        return str(predictions)
+            predicted_class = torch.argmax(logits, dim=-1).item()
+
+        return str(predicted_class)
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
@@ -239,6 +264,20 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
+        predictions = []
+        # Проходим по всему датасету без DataLoader
+        for i in range(len(self._dataset)):
+            # Получаем сэмпл
+            sample = self._dataset[i]
+            # Предсказываем для одного сэмпла
+            prediction = self.infer_sample(sample)
+            predictions.append(prediction)
+
+        # Создаем DataFrame с результатами
+        result_df = self._dataset.data.copy()
+        result_df['predictions'] = predictions
+
+        return result_df
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -251,6 +290,24 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+        texts = [sample[0] for sample in sample_batch]
+
+        inputs = self._tokenizer(
+            texts,
+            return_tensors="pt",
+            truncation=True,
+            padding=True,
+            max_length=self._max_length
+        )
+
+        inputs = {k: v.to(self._device) for k, v in inputs.items()}
+
+        self._model.eval()
+        outputs = self._model(**inputs)
+
+        predicted_classes = torch.argmax(outputs.logits, dim=-1).tolist()
+
+        return [self._model.config.id2label[c] for c in predicted_classes]
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
@@ -266,6 +323,9 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        self._data_path = data_path
+        self._metrics = metrics
+
 
     def run(self) -> dict:
         """
@@ -274,3 +334,17 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+        df = pd.read_csv(self._data_path)
+
+        predictions = df["predictions"].astype(int).tolist()
+        references = df["target"].astype(int).tolist()
+
+        metric = evaluate.load("f1")
+
+        score = metric.compute(
+            predictions=predictions,
+            references=references,
+            average="weighted"
+        )
+
+        return {"f1": score["f1"]}

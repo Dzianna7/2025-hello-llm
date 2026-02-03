@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 from core_utils.llm.time_decorator import report_time
-from lab_7_llm.main import LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset
+from lab_7_llm.main import LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset, TaskEvaluator
 
 
 @report_time
@@ -42,6 +42,16 @@ def main() -> None:
         print(f'{key} : {value}')
 
     print(pipeline.infer_sample(dataset[1]))
+
+    predictions_path = Path("dist/predictions.csv")
+    predictions_path.parent.mkdir(parents=True, exist_ok=True)
+    pipeline.infer_dataset().to_csv(predictions_path, index=False)
+    print("Saved to:", predictions_path)
+
+    evaluator = TaskEvaluator(predictions_path, settings['parameters']['metrics'])
+    evaluation_results = evaluator.run()
+    print(evaluation_results)
+
     assert result is not None, "Demo does not work correctly"
 
 
