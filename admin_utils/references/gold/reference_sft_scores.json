@@ -151,11 +151,6 @@
             "f1": 0.82999
         }
     },
-    "stevhliu/my_awesome_billsum_model": {
-        "CarlBrendt/Summ_Dialog_News": {
-            "bleu": 0.00000,
-            "rouge": 0.07834
-        },
         "d0rj/curation-corpus-ru": {
             "bleu": 0.00074,
             "rouge": 0.12734

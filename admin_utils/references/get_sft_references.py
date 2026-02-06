@@ -82,10 +82,7 @@ def get_target_modules(  # pylint: disable=too-many-return-statements)
         "Helsinki-NLP/opus-mt-en-fr",
     ):
         return ["q_proj", "k_proj"]
-    if model_name in (
-        "stevhliu/my_awesome_billsum_model",
-        "google-t5/t5-small",
-    ):
+    if model_name in ("google-t5/t5-small",):
         return ["q", "k", "v"]
     if model_name in ("UrukHan/t5-russian-summarization",):
         return ["q", "k", "wi", "wo"]
@@ -177,23 +174,17 @@ def main() -> None:
     specific_fine_tuning_steps = {
         "Helsinki-NLP/opus-mt-en-fr": 60,
         "Helsinki-NLP/opus-mt-ru-es": 100,
-        "stevhliu/my_awesome_billsum_model": 60,
         "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": 150,
-    }
-    specific_lr = {
-        "stevhliu/my_awesome_billsum_model": 1e-4,
     }
     specific_rank = {
         "Helsinki-NLP/opus-mt-en-fr": 8,
         "cointegrated/rubert-tiny2-cedr-emotion-detection": 16,
-        "stevhliu/my_awesome_billsum_model": 24,
         "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": 24,
         "google-t5/t5-small": 24,
     }
     specific_alpha = {
         "Helsinki-NLP/opus-mt-en-fr": 8,
         "cointegrated/rubert-tiny2-cedr-emotion-detection": 24,
-        "stevhliu/my_awesome_billsum_model": 36,
         "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": 36,
         "google-t5/t5-small": 36,
     }
@@ -211,8 +202,6 @@ def main() -> None:
                 "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization",
                 "cnn_dailymail",
             ),
-            ("stevhliu/my_awesome_billsum_model", "CarlBrendt/Summ_Dialog_News"),
-            ("stevhliu/my_awesome_billsum_model", "d0rj/curation-corpus-ru"),
             ("tatiana-merz/turkic-cyrillic-classifier", "tatiana-merz/cyrillic_turkic_langs"),
         ):
             print(f"Skipping for {model_name} {dataset_name}")
@@ -220,7 +209,6 @@ def main() -> None:
         prepare_result_section(result, model_name, dataset_name, metrics)
 
         sft_params.finetuned_model_path = dist_dir / model_name
-        sft_params.learning_rate = specific_lr.get(model_name, 1e-3)
         sft_params.max_fine_tuning_steps = specific_fine_tuning_steps.get(model_name, 50)
         sft_params.rank = specific_rank.get(model_name, 16)
         sft_params.alpha = specific_alpha.get(model_name, 16)

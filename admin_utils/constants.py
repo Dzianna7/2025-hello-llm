@@ -34,11 +34,10 @@ print(f"Selected {DEVICE} for all reference collection tasks")
 PROJECT_ROOT = Path(__file__).parent.parent
 PROJECT_CONFIG_PATH = PROJECT_ROOT / "project_config.json"
 CONFIG_PACKAGE_PATH = PROJECT_ROOT / "config"
-TRACKED_JSON_PATH = str(
-    (PROJECT_ROOT / "admin_utils" / "external_pr_files" / "tracked_files.json").relative_to(
-        PROJECT_ROOT
-    )
-)
+TRACKED_JSON_PATH = (
+    PROJECT_ROOT / "admin_utils" / "external_pr_files" / "tracked_files.json"
+).relative_to(PROJECT_ROOT)
+
 DIST_PATH = PROJECT_ROOT / "dist"
 
 GLOBAL_SEED = 77

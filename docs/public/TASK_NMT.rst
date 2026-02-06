@@ -12,7 +12,7 @@ Models
 | `Helsinki-NLP/opus-mt-en-fr                                                         | EN   |
 | <https://huggingface.co/Helsinki-NLP/opus-mt-en-fr>`__                              |      |
 +-------------------------------------------------------------------------------------+------+
-| `t5-small <https://huggingface.co/t5-small>`__                                      | EN   |
+| `google-t5/t5-small <https://huggingface.co/t5-small>`__                            | EN   |
 +-------------------------------------------------------------------------------------+------+
 | `Helsinki-NLP/opus-mt-ru-en                                                         | RU   |
 | <https://huggingface.co/Helsinki-NLP/opus-mt-ru-en>`__                              |      |
@@ -86,7 +86,7 @@ Supervised Fine-Tuning (SFT) Parameters
           models.
 
 .. note:: Set the parameters ``target_modules=["q", "k", "v"], rank=24, alpha=36`` for the
-          `t5-small <https://huggingface.co/t5-small>`__ model as SFT parameter.
+          `google-t5/t5-small <https://huggingface.co/t5-small>`__ model as SFT parameter.
 
 .. note:: Set the parameter ``fine_tuning_steps=100`` for the
           `Helsinki-NLP/opus-mt-ru-es <https://huggingface.co/Helsinki-NLP/opus-mt-ru-es>`__

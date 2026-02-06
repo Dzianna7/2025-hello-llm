@@ -548,22 +548,6 @@
         "size": 711419912,
         "vocab_size": 119547
     },
-    "stevhliu/my_awesome_billsum_model": {
-        "embedding_size": 512,
-        "input_shape": [
-            1,
-            512
-        ],
-        "max_context_length": 20,
-        "num_trainable_params": 128736512,
-        "output_shape": [
-            1,
-            512,
-            32128
-        ],
-        "size": 307824640,
-        "vocab_size": 32128
-    },
     "tatiana-merz/turkic-cyrillic-classifier": {
         "embedding_size": 512,
         "input_shape": {

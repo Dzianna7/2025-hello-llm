@@ -20,9 +20,9 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup FIPL environment
-        uses: fipl-hse/setup-env-action@v0.11
+        uses: fipl-hse/setup-env-action@v0.13.2
       - name: Confirming everything is OK
         run: |
           ls -la venv
@@ -38,9 +38,9 @@ jobs:
       PR_AUTHOR: ${{ github.actor }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup FIPL environment
-        uses: fipl-hse/setup-env-action@v0.11
+        uses: fipl-hse/setup-env-action@v0.13.2
       - name: PR name check
         run: |
           source venv/bin/activate
@@ -57,9 +57,9 @@ jobs:
       PR_AUTHOR: ${{ github.actor }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup FIPL environment
-        uses: fipl-hse/setup-env-action@v0.11
+        uses: fipl-hse/setup-env-action@v0.13.2
       - name: Code Style
         run: |
           source venv/bin/activate
@@ -73,9 +73,9 @@ jobs:
     needs: [ install-dependencies ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup FIPL environment
-        uses: fipl-hse/setup-env-action@v0.11
+        uses: fipl-hse/setup-env-action@v0.13.2
       - name: MyPy check
         run: |
           source venv/bin/activate
@@ -92,9 +92,9 @@ jobs:
       PR_AUTHOR: ${{ github.actor }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup FIPL environment
-        uses: fipl-hse/setup-env-action@v0.11
+        uses: fipl-hse/setup-env-action@v0.13.2
       - name: Run tests
         if: ${{ env.REPOSITORY_TYPE == 'public' }}
         run: |
@@ -111,9 +111,9 @@ jobs:
       PR_NAME: ${{ github.event.pull_request.title }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup FIPL environment
-        uses: fipl-hse/setup-env-action@v0.11
+        uses: fipl-hse/setup-env-action@v0.13.2
       - name: Run start
         run: |
           source venv/bin/activate
@@ -127,9 +127,9 @@ jobs:
     needs: [ install-dependencies ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup FIPL environment
-        uses: fipl-hse/setup-env-action@v0.11
+        uses: fipl-hse/setup-env-action@v0.13.2
       - name: Flake8 check
         run: |
           source venv/bin/activate
@@ -143,9 +143,9 @@ jobs:
     needs: [ install-dependencies ]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup FIPL environment
-        uses: fipl-hse/setup-env-action@v0.11
+        uses: fipl-hse/setup-env-action@v0.13.2
       - name: Dependencies check
         run: |
           source venv/bin/activate

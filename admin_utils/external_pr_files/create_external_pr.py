@@ -301,27 +301,28 @@ def get_and_update_json_if_changed(
     json_content = None
     json_changed = TRACKED_JSON_PATH in changed_files
 
-    stdout, _, return_code = run_git(
-        ["show", f"{commit_sha}:{TRACKED_JSON_PATH}"],
-        cwd=repo_path,
-    )
+    if json_changed:
+        stdout, _, return_code = run_git(
+            ["show", f"{commit_sha}:{TRACKED_JSON_PATH}"],
+            cwd=repo_path,
+        )
 
-    if return_code == 0 and stdout:
-        json_content = json.loads(stdout)
+        if return_code == 0 and stdout:
+            json_content = json.loads(stdout)
 
-        if json_changed:
-            json_path = Path(repo_path) / TRACKED_JSON_PATH
-            json_path.parent.mkdir(parents=True, exist_ok=True)
+            TRACKED_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-            with open(json_path, "w", encoding="utf-8") as f:
+            with open(TRACKED_JSON_PATH, "w", encoding="utf-8") as f:
                 f.write(stdout)
 
             run_git(["add", TRACKED_JSON_PATH], cwd=repo_path)
-    elif json_changed:
-        json_path = Path(repo_path) / TRACKED_JSON_PATH
-        if json_path.exists():
-            run_git(["rm", TRACKED_JSON_PATH], cwd=repo_path)
-            json_content = {}
+
+    else:
+        if TRACKED_JSON_PATH.exists():
+            with open(TRACKED_JSON_PATH, "r", encoding="utf-8") as f:
+                json_content = json.load(f)
+        else:
+            logger.warning("Tracked JSON file not found in target repo: %s", TRACKED_JSON_PATH)
 
     return json_content, json_changed
 
@@ -639,7 +640,7 @@ def main() -> None:
     commit_sha, changed_files = get_pr_info(repo_name, pr_number, gh_token, target_repo)
 
     json_content, json_changed = get_and_update_json_if_changed(
-        target_repo, commit_sha, changed_files
+        repo_name, commit_sha, changed_files
     )
 
     sync_mapping = get_sync_mapping(json_content)

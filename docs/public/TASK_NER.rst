@@ -74,6 +74,14 @@ for named entity recognition task has its specifics:
           namely ``[[0, 0, 0, 1, 0, 0, 0, 0, 0]]``. Thus, if the model predicted label ``1`` for the first token
           of the word ``LEICESTERSHIRE``, then the final result for this word will include ``1``.
 
+Supervised Fine-Tuning (SFT) Parameters
+---------------------------------------
+
+.. note:: Set the parameter ``target_modules`` as
+          ``["q_lin", "k_lin", "v_lin", "out_lin"]`` for the
+          `dslim/distilbert-NER <https://huggingface.co/dslim/distilbert-NER>`__
+          model.
+
 Metrics
 -------
 
