@@ -9,6 +9,7 @@ Working with Large Language Models.
 # from sympy.codegen import Print
 from pathlib import Path
 from typing import Iterable, Sequence, cast
+
 import evaluate
 import pandas as pd
 import torch
@@ -232,7 +233,7 @@ class LLMPipeline(AbstractLLMPipeline):
         result_df = self._dataset.data.copy()
         result_df['predictions'] = predictions
 
-        return result_df
+        return cast(pd.DataFrame, result_df)
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
