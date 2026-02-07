@@ -6,10 +6,7 @@ Working with Large Language Models.
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 from pathlib import Path
-from typing import (Iterable,
-                    Sequence,
-                    cast,
-)
+from typing import cast, Iterable, Sequence
 
 import evaluate
 import pandas as pd
@@ -172,7 +169,6 @@ class LLMPipeline(AbstractLLMPipeline):
         self._model = AutoModelForSequenceClassification.from_pretrained(
             self._model_name,
         ).to(self._device)
-        self._model = cast(nn.Module, self._model)
 
 
     def analyze_model(self) -> dict:
@@ -183,11 +179,12 @@ class LLMPipeline(AbstractLLMPipeline):
             dict: Properties of a model
         """
         config = self._model.config
+        model_module = cast(nn.Module, self._model)
 
         input_ids = torch.ones((1, config.max_position_embeddings), dtype=torch.long)
         attention_mask = torch.ones_like(input_ids)
 
-        stats = summary(self._model,
+        stats = summary(model_module,
                         input_data={"input_ids": input_ids, "attention_mask": attention_mask},
                         device=self._device,
                         verbose=0)
