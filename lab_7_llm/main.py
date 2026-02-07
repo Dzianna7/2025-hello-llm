@@ -182,7 +182,8 @@ class LLMPipeline(AbstractLLMPipeline):
         attention_mask = torch.ones_like(input_ids)
 
         stats = summary(self._model, input_data={"input_ids": input_ids,
-                                                 "attention_mask": attention_mask}, device=self._device, verbose=0)
+                                                 "attention_mask": attention_mask},
+                        device=self._device, verbose=0)
 
         return {
             "input_shape": {k: list(v) for k, v in stats.input_size.items()},
@@ -218,7 +219,8 @@ class LLMPipeline(AbstractLLMPipeline):
         """
         predictions = []
         for i in range(0, len(self._dataset), self._batch_size):
-            batch = [self._dataset[idx] for idx in range(i, min(i + self._batch_size, len(self._dataset)))]
+            batch = [self._dataset[idx] for idx in range(i, min(i + self._batch_size,
+                                                                len(self._dataset)))]
             predictions.extend(self._infer_batch(batch))
 
         result_df = self._dataset.data.copy()
