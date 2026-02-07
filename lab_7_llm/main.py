@@ -45,6 +45,8 @@ class RawDataImporter(AbstractRawDataImporter):
 
         if not isinstance(self._raw_data, pd.DataFrame):
             raise TypeError("Dataset is not pd.DataFrame")
+        if self._raw_data is None:
+            raise ValueError("raw_data cannot be None")
 
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
@@ -246,19 +248,22 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
-        texts = [sample[0] for sample in sample_batch]
-        self._model.eval()
+        with torch.no_grad():
+            texts = [sample[0] for sample in sample_batch]
+            self._model.eval()
 
-        inputs = self._tokenizer(texts,
-                                 return_tensors="pt",
-                                 truncation=True,
-                                 padding=True,
-                                 max_length=self._max_length)
-        inputs = {k: v.to(self._device) for k, v in inputs.items()}
+            inputs = self._tokenizer(
+                texts,
+                return_tensors="pt",
+                truncation=True,
+                padding=True,
+                max_length=self._max_length
+            )
+            inputs = {k: v.to(self._device) for k, v in inputs.items()}
 
-        predicted_ids = torch.argmax(self._model(**inputs).logits, dim=-1).cpu().tolist()
-        return [str(prediction) for prediction in predicted_ids]
-
+            outputs = self._model(**inputs)
+            predicted_ids = torch.argmax(outputs.logits, dim=-1).cpu().tolist()
+            return [str(prediction) for prediction in predicted_ids]
 
 class TaskEvaluator(AbstractTaskEvaluator):
     """
