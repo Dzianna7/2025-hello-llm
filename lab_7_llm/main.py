@@ -179,14 +179,18 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
+        assert self._model is not None, "Model is not initialized"
+
         config = self._model.config
         input_ids = torch.ones((1, config.max_position_embeddings), dtype=torch.long)
         attention_mask = torch.ones_like(input_ids)
 
-        stats = summary(self._model,
-                        input_data={"input_ids": input_ids, "attention_mask": attention_mask},
-                        device=self._device,
-                        verbose=0)
+        stats = summary(
+            self._model,
+            input_data={"input_ids": input_ids, "attention_mask": attention_mask},
+            device=self._device,
+            verbose=0
+        )
 
         return {
             "input_shape": {k: list(v) for k, v in stats.input_size.items()},
