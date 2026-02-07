@@ -6,9 +6,14 @@ Starter for demonstration of laboratory work.
 import json
 from pathlib import Path
 
-from core_utils.llm.time_decorator import report_time
-from lab_7_llm.main import LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset, TaskEvaluator
-
+from lab_7_llm.main import (
+    LLMPipeline,
+    RawDataImporter,
+    RawDataPreprocessor,
+    report_time,
+    TaskDataset,
+    TaskEvaluator,
+)
 
 @report_time
 def main() -> None:
@@ -36,14 +41,14 @@ def main() -> None:
 
     model = settings['parameters']['model']
 
-    pipeline = LLMPipeline(model, dataset, 120, 1, 'cpu')
+    pipeline = LLMPipeline(model, dataset, 120, 64, 'cpu')
 
     for key, value in pipeline.analyze_model().items():
         print(f'{key} : {value}')
 
     print(pipeline.infer_sample(dataset[1]))
 
-    predictions_path = Path("dist/predictions.csv")
+    predictions_path = Path(__file__).parent / "dist" / "predictions.csv"
     predictions_path.parent.mkdir(parents=True, exist_ok=True)
     pipeline.infer_dataset().to_csv(predictions_path, index=False)
     print("Saved to:", predictions_path)
@@ -57,4 +62,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -21,7 +21,7 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
-from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
 
@@ -164,14 +164,10 @@ class LLMPipeline(AbstractLLMPipeline):
         self._batch_size = batch_size
         self._device = device
 
-        self._tokenizer = AutoTokenizer.from_pretrained("aiknowyou/it-emotion-analyzer")
+        self._tokenizer = AutoTokenizer.from_pretrained(self._model_name)
         self._model = AutoModelForSequenceClassification.from_pretrained(
             self._model_name,
-            num_labels=6
-        ).to(device)
-
-
-        self._model.eval()
+        ).to(self._device)
 
 
     def analyze_model(self) -> dict:
@@ -182,32 +178,14 @@ class LLMPipeline(AbstractLLMPipeline):
             dict: Properties of a model
         """
         config = self._model.config
-
-        input_ids = torch.ones(
-            (1, config.max_position_embeddings),
-            dtype=torch.long
-        )
-
+        input_ids = torch.ones((1, config.max_position_embeddings), dtype=torch.long)
         attention_mask = torch.ones_like(input_ids)
 
-        tokens = {
-            "input_ids": input_ids,
-            "attention_mask": attention_mask
-        }
-
-        stats = summary(
-            self._model,
-            input_data=tokens,
-            device=self._device,
-            verbose=0
-        )
-
-        input_shape_dict = {}
-        for key, value in stats.input_size.items():
-            input_shape_dict[key] = list(value)
+        stats = summary(self._model, input_data={"input_ids": input_ids,
+                                                 "attention_mask": attention_mask}, device=self._device, verbose=0)
 
         return {
-            "input_shape": input_shape_dict,
+            "input_shape": {k: list(v) for k, v in stats.input_size.items()},
             "embedding_size": config.max_position_embeddings,
             "output_shape": stats.summary_list[-1].output_size,
             "num_trainable_params": stats.trainable_params,
@@ -227,34 +205,8 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        if not sample or len(sample) == 0:
-            return None
-
-        text = sample[0]
-
-        inputs = self._tokenizer(
-            text,
-            return_tensors="pt",
-            truncation=True,
-            padding='max_length',
-            max_length=self._max_length,
-            add_special_tokens=True
-        )
-
-        inputs = {k: v.to(self._device) for k, v in inputs.items()}
-
-        with torch.no_grad():
-            outputs = self._model(**inputs)
-            logits = outputs.logits
-            probabilities = torch.nn.functional.softmax(logits, dim=-1)
-
-            max_prob = torch.max(probabilities).item()
-            if max_prob < 0.5:  # Порог уверенности
-                return "3"
-
-            predicted_class = torch.argmax(logits, dim=-1).item()
-
-        return str(predicted_class)
+        # Используем _infer_batch для одного сэмпла
+        return self._infer_batch([sample])[0]
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
@@ -265,15 +217,10 @@ class LLMPipeline(AbstractLLMPipeline):
             pd.DataFrame: Data with predictions
         """
         predictions = []
-        # Проходим по всему датасету без DataLoader
-        for i in range(len(self._dataset)):
-            # Получаем сэмпл
-            sample = self._dataset[i]
-            # Предсказываем для одного сэмпла
-            prediction = self.infer_sample(sample)
-            predictions.append(prediction)
+        for i in range(0, len(self._dataset), self._batch_size):
+            batch = [self._dataset[idx] for idx in range(i, min(i + self._batch_size, len(self._dataset)))]
+            predictions.extend(self._infer_batch(batch))
 
-        # Создаем DataFrame с результатами
         result_df = self._dataset.data.copy()
         result_df['predictions'] = predictions
 
@@ -291,24 +238,14 @@ class LLMPipeline(AbstractLLMPipeline):
             list[str]: Model predictions as strings
         """
         texts = [sample[0] for sample in sample_batch]
+        self._model.eval()
 
-        inputs = self._tokenizer(
-            texts,
-            return_tensors="pt",
-            truncation=True,
-            padding=True,
-            max_length=self._max_length
-        )
-
+        inputs = self._tokenizer(texts, return_tensors="pt", truncation=True,
+                                 padding=True, max_length=self._max_length)
         inputs = {k: v.to(self._device) for k, v in inputs.items()}
 
-        self._model.eval()
-        outputs = self._model(**inputs)
-
-        predicted_classes = torch.argmax(outputs.logits, dim=-1).tolist()
-
-        return [self._model.config.id2label[c] for c in predicted_classes]
-
+        predicted_ids = torch.argmax(self._model(**inputs).logits, dim=-1).cpu().tolist()
+        return [str(pred) for pred in predicted_ids]
 
 class TaskEvaluator(AbstractTaskEvaluator):
     """
@@ -326,7 +263,6 @@ class TaskEvaluator(AbstractTaskEvaluator):
         self._data_path = data_path
         self._metrics = metrics
 
-
     def run(self) -> dict:
         """
         Evaluate the predictions against the references using the specified metric.
@@ -335,16 +271,9 @@ class TaskEvaluator(AbstractTaskEvaluator):
             dict: A dictionary containing information about the calculated metric
         """
         df = pd.read_csv(self._data_path)
-
         predictions = df["predictions"].astype(int).tolist()
         references = df["target"].astype(int).tolist()
 
-        metric = evaluate.load("f1")
-
-        score = metric.compute(
-            predictions=predictions,
-            references=references,
-            average="weighted"
-        )
-
-        return {"f1": score["f1"]}
+        score = evaluate.load("f1").compute(predictions=predictions,
+                                            references=references, average="weighted")
+        return {"f1": float(f"{score['f1']:.5f}")}
