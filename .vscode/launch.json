@@ -141,6 +141,39 @@
             }
         },
         {
+            "name": "[SEMINAR 5] Try GPU",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/seminars/seminar_02_16_2026/try_gpu.py",
+            "cwd": "${workspaceFolder}/seminars/seminar_02_16_2026",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "[SEMINAR 5] Try convert from torch",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/seminars/seminar_02_16_2026/try_torch_onnx.py",
+            "cwd": "${workspaceFolder}/seminars/seminar_02_16_2026",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "[SEMINAR 5] Try convert from ONNX runtime",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/seminars/seminar_02_16_2026/try_onnx.py",
+            "cwd": "${workspaceFolder}/seminars/seminar_02_16_2026",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
             "name": "[CHECK] UML Diagrams",
             "type": "debugpy",
             "request": "launch",

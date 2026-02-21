@@ -129,7 +129,7 @@ Metrics CLOSED QA
 Datasets OPEN QA
 ----------------
 
-1. `truthful_qa <https://huggingface.co/datasets/domenicrosati/TruthfulQA>`__
+1. `domenicrosati/TruthfulQA <https://huggingface.co/datasets/domenicrosati/TruthfulQA>`__
 
    1. **Lang**: EN
    2. **Rows**: 817

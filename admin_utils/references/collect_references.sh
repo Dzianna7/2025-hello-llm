@@ -29,3 +29,8 @@ python admin_utils/references/get_sft_references.py
 
 current_date_time="`date "+%Y-%m-%d %H:%M:%S"`";
 echo $current_date_time;
+
+# Compare references
+python admin_utils/references/comparison/comparator.py --old-references admin_utils/references/gold/reference_scores.json --new-references admin_utils/references/gold/reference_sft_scores.json
+
+cat dist dist/compared_before_after_sft.csv

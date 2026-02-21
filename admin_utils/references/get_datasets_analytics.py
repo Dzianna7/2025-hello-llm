@@ -15,7 +15,11 @@ except ImportError:
     print('Library "transformers" not installed. Failed to import.')
 
 from admin_utils.constants import GLOBAL_SEED
-from admin_utils.references.get_model_analytics import get_references, save_reference
+from admin_utils.references.models import (
+    DatasetReferenceDTO,
+    DatasetReferencesModel,
+    EvaluationReferencesModel,
+)
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
 from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor
 
@@ -119,15 +123,12 @@ def main() -> None:
     references_path = references_dir / "reference_scores.json"
     destination_path = references_dir / "reference_dataset_analytics.json"
 
-    references = get_references(path=references_path)
+    eval_references = EvaluationReferencesModel.from_json(references_path)
+    datasets = eval_references.get_datasets()
 
-    datasets_raw = []
-    for _, dataset_pack in references.items():
-        for dataset_name in dataset_pack.keys():
-            datasets_raw.append(dataset_name)
+    dataset_references = DatasetReferencesModel()
 
-    result = {}
-    for dataset_name in tqdm(sorted(set(datasets_raw))):
+    for dataset_name in tqdm(datasets):
         importer: AbstractRawDataImporter
         print(f"Processing {dataset_name} ...", flush=True)
 
@@ -192,7 +193,7 @@ def main() -> None:
             importer = RuNonDetoxifiedDataImporter(dataset_name)
         elif dataset_name == "d0rj/rudetoxifier_data":
             importer = RuDetoxifierDataImporter(dataset_name)
-        elif dataset_name == "truthful_qa":
+        elif dataset_name == "domenicrosati/TruthfulQA":
             importer = TruthfulQARawDataImporter(dataset_name)
         elif dataset_name in ["tatsu-lab/alpaca", "jtatman/databricks-dolly-8k-qa-open-close"]:
             importer = QARawDataImporter(dataset_name)
@@ -282,7 +283,7 @@ def main() -> None:
             preprocessor = RuNonDetoxifiedPreprocessor(importer.raw_data)
         elif dataset_name == "d0rj/rudetoxifier_data":
             preprocessor = RuDetoxifierPreprocessor(importer.raw_data)
-        elif dataset_name == "truthful_qa":
+        elif dataset_name == "domenicrosati/TruthfulQA":
             preprocessor = TruthfulQARawDataPreprocessor(importer.raw_data)
         elif dataset_name == "jtatman/databricks-dolly-8k-qa-open-close":
             preprocessor = DatabricksRawDataPreprocessor(importer.raw_data)
@@ -304,9 +305,18 @@ def main() -> None:
         except Exception as e:
             print(f"{dataset_name} analysis has some problems!")
             raise e
-        result[dataset_name] = dataset_analysis
 
-    save_reference(destination_path, result)
+        analytics = DatasetReferenceDTO(
+            dataset_number_of_samples=dataset_analysis["dataset_number_of_samples"],
+            dataset_columns=dataset_analysis["dataset_columns"],
+            dataset_duplicates=dataset_analysis["dataset_duplicates"],
+            dataset_empty_rows=dataset_analysis["dataset_empty_rows"],
+            dataset_sample_min_len=dataset_analysis["dataset_sample_min_len"],
+            dataset_sample_max_len=dataset_analysis["dataset_sample_max_len"],
+        )
+        dataset_references.add(dataset_name, analytics)
+
+    dataset_references.dump(destination_path)
 
 
 if __name__ == "__main__":

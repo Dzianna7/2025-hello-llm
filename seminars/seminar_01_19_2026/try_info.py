@@ -9,7 +9,7 @@ try:
         BertForSequenceClassification,
     )
 except ImportError:
-    print('Library "pandas" not installed. Failed to import.')
+    print('Library "transformers" not installed. Failed to import.')
 
 try:
     from torchinfo import summary  # type: ignore

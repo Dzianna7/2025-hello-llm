@@ -143,6 +143,14 @@
         "dataset_sample_max_len": 295,
         "dataset_sample_min_len": 11
     },
+    "domenicrosati/TruthfulQA": {
+        "dataset_columns": 7,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 2,
+        "dataset_number_of_samples": 817,
+        "dataset_sample_max_len": 308,
+        "dataset_sample_min_len": 12
+    },
     "enimai/MuST-C-fr": {
         "dataset_columns": 2,
         "dataset_duplicates": 78,
@@ -310,14 +318,6 @@
         "dataset_number_of_samples": 95,
         "dataset_sample_max_len": 4276,
         "dataset_sample_min_len": 155
-    },
-    "truthful_qa": {
-        "dataset_columns": 7,
-        "dataset_duplicates": 0,
-        "dataset_empty_rows": 0,
-        "dataset_number_of_samples": 817,
-        "dataset_sample_max_len": 308,
-        "dataset_sample_min_len": 12
     },
     "xnli": {
         "dataset_columns": 3,

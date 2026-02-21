@@ -5,6 +5,7 @@ Models for references comparison tool
 from enum import StrEnum
 from pathlib import Path
 
+import simplejson as json
 from pydantic import BaseModel, ConfigDict, Field, field_validator, RootModel
 
 
@@ -109,3 +110,88 @@ class JSONLoader(RootModel[dict[str, dict[str, dict[str, float]]]]):
         """
         loader = cls.from_file(filepath)
         return loader.to_schemas()
+
+
+class JSONSerializableMixin:  # pylint: disable=R0903
+    """
+    Mixin for serializable pydantic models.
+    """
+
+    def dump(self, json_path: Path) -> None:
+        """
+        Save model to JSON.
+
+        Args:
+            json_path (Path): Path to the file
+        """
+        with json_path.open(mode="w", encoding="utf-8") as f:
+            content = json.loads(self.model_dump_json())
+            json.dump(content, f, indent=4, ensure_ascii=False, sort_keys=True)
+            f.write("\n")
+
+
+class DatasetReferenceDTO(BaseModel):
+    """
+    Data transfer object for a single dataset's analytics.
+    """
+
+    dataset_number_of_samples: int
+    dataset_columns: int
+    dataset_duplicates: int
+    dataset_empty_rows: int
+    dataset_sample_min_len: int
+    dataset_sample_max_len: int
+
+
+class DatasetReferencesModel(RootModel[dict[str, DatasetReferenceDTO]], JSONSerializableMixin):
+    """
+    Model for storing multiple dataset references.
+    """
+
+    root: dict[str, DatasetReferenceDTO] = {}
+
+    def add(self, dataset_name: str, analytics: DatasetReferenceDTO) -> None:
+        """
+        Add dataset to storage
+
+        Args:
+            dataset_name (str): Name of dataset
+            analytics (DatasetReferenceDTO): Dataset analytics
+        """
+        self.root[dataset_name] = analytics
+
+
+class EvaluationReferencesModel(BaseModel):
+    """
+    Model for loading evaluation references from JSON.
+    """
+
+    references: dict
+
+    @classmethod
+    def from_json(cls, json_path: Path) -> "EvaluationReferencesModel":
+        """
+        Load references from JSON file.
+
+        Args:
+            json_path (Path): Path to the reference file
+
+        Returns:
+            EvaluationReferencesModel: Loaded references
+        """
+        with json_path.open(encoding="utf-8") as f:
+            data = json.load(f)
+        return cls(references=data)
+
+    def get_datasets(self) -> list[str]:
+        """
+        Extract unique dataset names from references.
+
+        Returns:
+            list[str]: Sorted list of unique dataset names
+        """
+        datasets_raw = []
+        for _, dataset_pack in self.references.items():
+            for dataset_name in dataset_pack.keys():
+                datasets_raw.append(dataset_name)
+        return sorted(set(datasets_raw))
